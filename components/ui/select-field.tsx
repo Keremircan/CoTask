@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react";
 import { ChevronDown } from "lucide-react";
-import { field } from "./ui";
+import { field } from "./styles";
 
 // Tarayıcının varsayılan okunu gizleyip yerine kendi ikonumuzu koyar
 export function SelectField({ className = "", ...props }: ComponentProps<"select">) {

@@ -1,0 +1,63 @@
+import { BookOpen, ExternalLink, GitPullRequest, Globe, Link2, PenTool } from "lucide-react";
+import { card } from "@/components/ui/styles";
+import type { ExtractedLink, LinkKind } from "@/lib/links";
+
+const KIND_UI: Record<LinkKind, { icon: typeof Globe; tone: string; name: string }> = {
+  github: { icon: GitPullRequest, tone: "bg-slate-900 text-white", name: "GitHub" },
+  figma: { icon: PenTool, tone: "bg-violet-50 text-violet-600", name: "Figma" },
+  docs: { icon: BookOpen, tone: "bg-amber-50 text-amber-600", name: "Doküman" },
+  web: { icon: Globe, tone: "bg-sky-50 text-sky-600", name: "Web" },
+};
+
+export function TaskLinks({ links }: { links: ExtractedLink[] }) {
+  return (
+    <section className={`${card} p-6`}>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-[18px] font-bold text-slate-900">
+          Referanslar / Linkler
+        </h2>
+        <span className="text-sm text-slate-500">{links.length}</span>
+      </div>
+
+      {links.length === 0 ? (
+        <div className="flex items-start gap-3 rounded-xl border border-dashed border-slate-200 px-4 py-5 text-sm text-slate-500">
+          <Link2 className="mt-0.5 size-4 shrink-0 text-slate-400" />
+          Açıklamada veya yorumlarda paylaşılan linkler burada otomatik
+          toplanır.
+        </div>
+      ) : (
+        <ul className="space-y-2">
+          {links.map((link) => {
+            const { icon: Icon, tone, name } = KIND_UI[link.kind];
+            return (
+              <li key={link.url}>
+                <a
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={link.url}
+                  className="group flex items-center gap-3 rounded-xl border border-slate-100 p-2.5 transition hover:border-teal-200 hover:bg-teal-50/40"
+                >
+                  <span
+                    className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${tone}`}
+                  >
+                    <Icon className="size-4" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[14.5px] font-bold text-slate-900">
+                      {link.label}
+                    </span>
+                    <span className="block truncate text-xs text-slate-500">
+                      {name} · {link.source}
+                    </span>
+                  </span>
+                  <ExternalLink className="size-4 shrink-0 text-slate-300 transition group-hover:text-teal-600" />
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}

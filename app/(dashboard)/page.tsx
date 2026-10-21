@@ -1,104 +1,89 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import {
-  ChartNoAxesCombined,
+  ArrowRight,
   CircleCheck,
-  CircleCheckBig,
   ClipboardClock,
-  ClipboardList,
+  FolderKanban,
   Users,
   type LucideIcon,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { getCurrentUser } from "@/lib/auth";
+import { formatDateTime } from "@/lib/format";
+import { card } from "@/components/ui/styles";
+import { StatusBadge } from "@/components/tasks/status-badge";
+import type { TaskStatus } from "@/types/database";
 import { PageHeader } from "./_components/page-header";
-import { card, primaryButton, secondaryButton } from "./_components/ui";
 
-export default function OverviewPage() {
+export default function HomePage() {
   return (
     <>
-      <PageHeader title="Genel bakış" />
+      <PageHeader title="Ana sayfa" />
 
       <Suspense fallback={<StatsSkeleton />}>
         <Stats />
       </Suspense>
 
-      <div className="mt-7 grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <section className={`${card} p-7`}>
-          <h2 className="text-[21px] font-bold text-slate-900">Ekip özeti</h2>
-          <p className="mt-2 text-[17px] text-slate-600">
-            Ekip arkadaşlarına iş ata, ilerlemeyi izle ve tamamlanan görevleri
-            tek ekrandan yönet.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/is-atama" className={primaryButton}>
-              <CircleCheckBig className="size-5" strokeWidth={2.4} />
-              Yeni iş ata
-            </Link>
-            <Link href="/is-takip" className={secondaryButton}>
-              <ChartNoAxesCombined className="size-5" strokeWidth={2.4} />
-              Takibe git
-            </Link>
-          </div>
-        </section>
+      <Suspense fallback={<div className={`${card} mt-6 h-64 animate-pulse`} />}>
+        <Inbox />
+      </Suspense>
 
-        <section className={`${card} p-7`}>
-          <h2 className="text-[21px] font-bold text-slate-900">
-            Nasıl çalışır?
-          </h2>
-          <ol className="mt-2 space-y-2 text-[17px] text-slate-600">
-            <li>1. Ekip üyesini seçip iş oluşturun.</li>
-            <li>2. Ekip üyesi işi okur ve durumunu günceller.</li>
-            <li>3. Takip ekranından tüm işlerin durumunu görün.</li>
-          </ol>
-        </section>
-      </div>
+      <section className={`${card} mt-6 p-7`}>
+        <h2 className="text-[20px] font-bold text-slate-900">Nasıl çalışır?</h2>
+        <ol className="mt-3 grid gap-3 text-[15.5px] text-slate-600 md:grid-cols-2 xl:grid-cols-4">
+          <Step n={1} title="İş ata">
+            Atadığım Görevler’den projesini ve kişisini seçerek işi oluşturun. Görev
+            “Onay Bekliyor” olarak başlar.
+          </Step>
+          <Step n={2} title="Kabul et">
+            Görevi alan kişi Görevlerim’den kabul eder, görev “Yapılıyor” olur.
+            “Herkes”e atanan işi ilk kabul eden üstlenir.
+          </Step>
+          <Step n={3} title="Kontrole gönder">
+            İş bitince sadece görevi alan kişi “Kontrol”e gönderir.
+          </Step>
+          <Step n={4} title="Tamamla">
+            Sadece görevi atayan kişi işi “Tamamlandı” yapar. Ekip her aşamada
+            görev altında konuşur, dosya ve link paylaşır.
+          </Step>
+        </ol>
+      </section>
     </>
   );
 }
 
-async function Stats() {
-  await getCurrentUser(); // oturum yoksa /login'e yönlendirir
-  const supabase = await createClient();
+function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
+  return (
+    <li className="rounded-xl bg-slate-50 p-4">
+      <p className="flex items-center gap-2 font-bold text-slate-900">
+        <span className="flex size-6 items-center justify-center rounded-full bg-teal-600 text-xs text-white">
+          {n}
+        </span>
+        {title}
+      </p>
+      <p className="mt-1.5 text-[14.5px] leading-relaxed">{children}</p>
+    </li>
+  );
+}
 
-  const [members, total, open, done] = await Promise.all([
-    supabase.from("profiles").select("*", { count: "exact", head: true }),
-    supabase.from("tasks").select("*", { count: "exact", head: true }),
-    supabase
-      .from("tasks")
-      .select("*", { count: "exact", head: true })
-      .neq("status", "done"),
-    supabase
-      .from("tasks")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "done"),
+async function Stats() {
+  await getCurrentUser();
+  const supabase = await createClient();
+  const head = { count: "exact" as const, head: true };
+
+  const [members, projects, open, done] = await Promise.all([
+    supabase.from("profiles").select("*", head),
+    supabase.from("projects").select("*", head),
+    supabase.from("tasks").select("*", head).neq("status", "done"),
+    supabase.from("tasks").select("*", head).eq("status", "done"),
   ]);
 
   const items: StatItem[] = [
-    {
-      value: members.count ?? 0,
-      label: "Ekip üyesi",
-      icon: Users,
-      tone: "bg-teal-50 text-teal-700",
-    },
-    {
-      value: total.count ?? 0,
-      label: "Toplam iş",
-      icon: ClipboardList,
-      tone: "bg-sky-50 text-sky-600",
-    },
-    {
-      value: open.count ?? 0,
-      label: "Devam eden",
-      icon: ClipboardClock,
-      tone: "bg-amber-50 text-amber-600",
-    },
-    {
-      value: done.count ?? 0,
-      label: "Tamamlanan",
-      icon: CircleCheck,
-      tone: "bg-rose-50 text-rose-600",
-    },
+    { value: members.count ?? 0, label: "Ekip üyesi", icon: Users, tone: "bg-teal-50 text-teal-700" },
+    { value: projects.count ?? 0, label: "Proje", icon: FolderKanban, tone: "bg-sky-50 text-sky-600" },
+    { value: open.count ?? 0, label: "Süren iş", icon: ClipboardClock, tone: "bg-amber-50 text-amber-600" },
+    { value: done.count ?? 0, label: "Tamamlanan", icon: CircleCheck, tone: "bg-rose-50 text-rose-600" },
   ];
 
   return (
@@ -110,25 +95,119 @@ async function Stats() {
   );
 }
 
-type StatItem = {
-  value: number;
-  label: string;
-  icon: LucideIcon;
-  tone: string;
+// Kullanıcıdan aksiyon bekleyen işler
+async function Inbox() {
+  const user = await getCurrentUser();
+  const supabase = await createClient();
+  const fields = "id, title, status, created_at, project:projects!tasks_project_id_fkey(name)";
+
+  const [waitingRes, reviewRes] = await Promise.all([
+    supabase
+      .from("tasks")
+      .select(fields)
+      .eq("status", "pending")
+      .or(`assigned_to.eq.${user.id},assigned_to.is.null`)
+      .order("created_at", { ascending: false })
+      .limit(6),
+    supabase
+      .from("tasks")
+      .select(fields)
+      .eq("created_by", user.id)
+      .eq("status", "review")
+      .order("created_at", { ascending: false })
+      .limit(6),
+  ]);
+
+  return (
+    <div className="mt-6 grid gap-6 xl:grid-cols-2">
+      <InboxCard
+        title="Kabulünü bekleyen görevler"
+        href="/gorevlerim"
+        linkLabel="Görevlerim"
+        empty="Kabul etmenizi bekleyen görev yok."
+        tasks={waitingRes.data ?? []}
+      />
+      <InboxCard
+        title="Kontrolünüzü bekleyen görevler"
+        href="/atadigim-gorevler"
+        linkLabel="Atadığım Görevler"
+        empty="Kontrolünüzü bekleyen görev yok."
+        tasks={reviewRes.data ?? []}
+      />
+    </div>
+  );
+}
+
+type InboxTask = {
+  id: string;
+  title: string;
+  status: TaskStatus;
+  created_at: string;
+  project: { name: string } | null;
 };
+
+function InboxCard({
+  title,
+  href,
+  linkLabel,
+  empty,
+  tasks,
+}: {
+  title: string;
+  href: string;
+  linkLabel: string;
+  empty: string;
+  tasks: InboxTask[];
+}) {
+  return (
+    <section className={`${card} p-6 sm:p-7`}>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="text-[20px] font-bold text-slate-900">{title}</h2>
+        <Link
+          href={href}
+          className="inline-flex items-center gap-1 text-sm font-bold text-teal-700 hover:underline"
+        >
+          {linkLabel} <ArrowRight className="size-4" />
+        </Link>
+      </div>
+      {tasks.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-slate-200 px-4 py-6 text-center text-[15px] text-slate-500">
+          {empty}
+        </p>
+      ) : (
+        <ul className="space-y-2">
+          {tasks.map((t) => (
+            <li key={t.id}>
+              <Link
+                href={`/gorevler/${t.id}`}
+                className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3 transition hover:border-teal-200 hover:bg-teal-50/40"
+              >
+                <span className="min-w-0">
+                  <span className="block truncate font-bold text-slate-900">{t.title}</span>
+                  <span className="block truncate text-sm text-slate-500">
+                    {t.project?.name ?? "Projesiz"} · {formatDateTime(t.created_at)}
+                  </span>
+                </span>
+                <StatusBadge status={t.status} />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+type StatItem = { value: number; label: string; icon: LucideIcon; tone: string };
 
 function StatCard({ value, label, icon: Icon, tone }: StatItem) {
   return (
     <div className={`${card} flex items-center gap-5 p-6`}>
-      <div
-        className={`flex size-14 shrink-0 items-center justify-center rounded-2xl ${tone}`}
-      >
+      <div className={`flex size-14 shrink-0 items-center justify-center rounded-2xl ${tone}`}>
         <Icon className="size-6" strokeWidth={2} />
       </div>
       <div>
-        <p className="text-[28px] leading-none font-bold text-slate-900">
-          {value}
-        </p>
+        <p className="text-[28px] leading-none font-bold text-slate-900">{value}</p>
         <p className="mt-1.5 text-[16px] text-slate-500">{label}</p>
       </div>
     </div>
@@ -139,13 +218,7 @@ function StatsSkeleton() {
   return (
     <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
       {Array.from({ length: 4 }, (_, i) => (
-        <div key={i} className={`${card} flex animate-pulse items-center gap-5 p-6`}>
-          <div className="size-14 rounded-2xl bg-slate-100" />
-          <div className="flex flex-col gap-2">
-            <div className="h-7 w-10 rounded bg-slate-100" />
-            <div className="h-4 w-24 rounded bg-slate-100" />
-          </div>
-        </div>
+        <div key={i} className={`${card} h-[104px] animate-pulse`} />
       ))}
     </div>
   );

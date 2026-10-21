@@ -7,9 +7,10 @@ export type CurrentUser = {
   id: string;
   email: string;
   name: string;
+  isAdmin: boolean;
 };
 
-// Aynı istek içinde layout ve sayfa birlikte çağırsa da tek sorgu atılır.
+// Aynı istek içinde birden çok bileşen çağırsa da tek sorgu atılır.
 export const getCurrentUser = cache(async (): Promise<CurrentUser> => {
   const supabase = await createClient();
 
@@ -20,15 +21,19 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser> => {
 
   const email = typeof claims.email === "string" ? claims.email : "";
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name")
-    .eq("id", claims.sub)
-    .maybeSingle();
+  const [{ data: profile }, { data: isAdmin }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", claims.sub)
+      .maybeSingle(),
+    supabase.rpc("is_admin"),
+  ]);
 
   return {
     id: claims.sub,
     email,
     name: profile?.full_name || email.split("@")[0] || "Ekip üyesi",
+    isAdmin: isAdmin === true,
   };
 });

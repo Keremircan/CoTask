@@ -24,3 +24,46 @@ body {
   color: var(--foreground);
   font-family: var(--font-dm-sans), system-ui, sans-serif;
 }
+
+/* ---------------------------------------------------------------
+   Markdown (görev açıklaması ve yorumlar)
+   --------------------------------------------------------------- */
+@layer components {
+  .markdown {
+    @apply text-[16px] leading-relaxed text-slate-700 [overflow-wrap:anywhere];
+  }
+  .markdown > :first-child { @apply mt-0; }
+  .markdown > :last-child { @apply mb-0; }
+  .markdown p { @apply my-3; }
+  .markdown h1, .markdown h2, .markdown h3, .markdown h4 {
+    @apply mt-5 mb-2 font-bold text-slate-900;
+  }
+  .markdown h1 { @apply text-xl; }
+  .markdown h2 { @apply text-lg; }
+  .markdown h3, .markdown h4 { @apply text-base; }
+  .markdown a {
+    @apply font-medium text-teal-700 underline decoration-teal-300 underline-offset-2 hover:decoration-teal-600;
+  }
+  .markdown ul { @apply my-3 list-disc pl-6; }
+  .markdown ol { @apply my-3 list-decimal pl-6; }
+  .markdown li { @apply my-1; }
+  .markdown li > input[type="checkbox"] { @apply mr-1.5 accent-teal-600; }
+  .markdown blockquote {
+    @apply my-3 border-l-4 border-teal-200 pl-4 text-slate-500;
+  }
+  .markdown hr { @apply my-5 border-slate-200; }
+  .markdown table { @apply my-4 w-full border-collapse text-sm; }
+  .markdown th, .markdown td { @apply border border-slate-200 px-3 py-2 text-left; }
+  .markdown th { @apply bg-slate-50 font-bold; }
+  .markdown :not(pre) > code {
+    @apply rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[0.88em] text-rose-700;
+  }
+}
+
+/* highlight.js teması katmansız yüklenir; bu yüzden bu kural da katman dışında */
+.code-block pre code.hljs,
+.code-block pre code {
+  background: transparent;
+  padding: 0;
+  overflow: visible;
+}

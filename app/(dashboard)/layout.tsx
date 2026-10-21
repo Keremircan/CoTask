@@ -1,66 +1,60 @@
 import { Suspense } from "react";
-import { ClipboardList } from "lucide-react";
-import { NavLinks } from "./_components/nav-links";
-import {
-  LogoutButton,
-  UserCard,
-  UserCardSkeleton,
-} from "./_components/user-card";
+import { getCurrentUser } from "@/lib/auth";
+import { getProjects } from "@/lib/projects";
+import { SidebarShell } from "./_components/sidebar-shell";
+import { SidebarNav, SidebarNavList } from "./_components/sidebar-nav";
+import { UserMenu } from "./_components/user-menu";
 
-function Brand() {
+export default function DashboardLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className="flex items-center gap-3.5">
-      <div className="flex size-13 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-[#4cc3a9] to-[#2a8577] shadow-[0_8px_28px_-4px_rgba(45,212,191,0.45)]">
-        <ClipboardList className="size-6 text-white" strokeWidth={2.2} />
-      </div>
-      <div className="leading-tight">
-        <p className="text-[19px] font-bold text-white">CoTask</p>
-        <p className="text-sm text-slate-300">Çalışma Alanı</p>
-      </div>
+    <div className="flex min-h-screen flex-1 bg-[#f2f5f8]">
+      <SidebarShell>
+        <div className="flex items-center justify-between gap-3 px-6 pt-5 pb-6">
+          <span className="truncate text-[19px] font-semibold tracking-tight text-white">
+            CoTask
+          </span>
+          <Suspense fallback={<div className="size-10 rounded-full bg-white/[0.08]" />}>
+            <SidebarUser />
+          </Suspense>
+        </div>
+        <Suspense fallback={<SidebarSkeleton />}>
+          <SidebarData />
+        </Suspense>
+      </SidebarShell>
+
+      <main className="flex min-w-0 flex-1 flex-col px-5 pt-20 pb-7 sm:px-9 lg:pt-8">
+        <div className="flex-1">{children}</div>
+        <footer className="mt-12 text-sm text-slate-400">
+          © 2026 CoTask · Ekip içi iş takip
+        </footer>
+      </main>
     </div>
   );
 }
 
-export default function DashboardLayout({
-  children,
-}: LayoutProps<"/">) {
+async function SidebarUser() {
+  const user = await getCurrentUser();
+  return <UserMenu name={user.name} email={user.email} isAdmin={user.isAdmin} />;
+}
+
+async function SidebarData() {
+  const [user, projects] = await Promise.all([getCurrentUser(), getProjects()]);
+  const props = { projects, userId: user.id, isAdmin: user.isAdmin };
   return (
-    <div className="flex min-h-screen flex-1 bg-[#f2f5f8]">
-      {/* Masaüstü: sabit sol menü */}
-      <aside className="sticky top-0 hidden h-screen w-[300px] shrink-0 flex-col bg-[#0b1324] px-4 pt-7 pb-5 lg:flex">
-        <div className="px-3">
-          <Brand />
-        </div>
-        <p className="mt-11 mb-3 px-3 text-[13px] font-medium tracking-[0.14em] text-slate-400">
-          MENÜ
-        </p>
-        <NavLinks />
-        <div className="mt-auto">
-          <Suspense fallback={<UserCardSkeleton />}>
-            <UserCard />
-          </Suspense>
-        </div>
-      </aside>
+    // Aktif sayfa (usePathname) istek anında bilinir; o gelene kadar vurgusuz liste
+    <Suspense fallback={<SidebarNavList {...props} pathname={null} />}>
+      <SidebarNav {...props} />
+    </Suspense>
+  );
+}
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        {/* Mobil: üst menü */}
-        <div className="bg-[#0b1324] px-4 pt-4 pb-3 lg:hidden">
-          <div className="flex items-center justify-between">
-            <Brand />
-            <LogoutButton compact />
-          </div>
-          <div className="mt-4">
-            <NavLinks compact />
-          </div>
-        </div>
-
-        <main className="flex flex-1 flex-col px-5 py-7 sm:px-9 lg:py-8">
-          <div className="flex-1">{children}</div>
-          <footer className="mt-12 text-sm text-slate-400">
-            © 2026 CoTask · Ekip içi iş takip
-          </footer>
-        </main>
-      </div>
+function SidebarSkeleton() {
+  return (
+    <div className="animate-pulse space-y-2 px-3">
+      {Array.from({ length: 4 }, (_, i) => (
+        <div key={i} className="h-11 rounded-lg bg-white/[0.04]" />
+      ))}
+      <div className="mt-7 h-6 w-24 rounded bg-white/[0.04]" />
     </div>
   );
 }

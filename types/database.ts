@@ -1,7 +1,8 @@
-// supabase/schema.sql ile birebir eşleşen tipler.
+// supabase/schema.sql + supabase/revize.sql ile birebir eşleşen tipler.
 // Şema değişirse burayı da güncelleyin.
 
-export type TaskStatus = "todo" | "in_progress" | "review" | "done";
+// pending: Onay Bekliyor · in_progress: Yapılıyor · review: Kontrol · done: Tamamlandı
+export type TaskStatus = "pending" | "in_progress" | "review" | "done";
 export type TaskPriority = "low" | "medium" | "high" | "urgent";
 
 export type Profile = {
@@ -11,15 +12,24 @@ export type Profile = {
   created_at: string;
 };
 
+export type Project = {
+  id: string;
+  name: string;
+  created_by: string | null;
+  created_at: string;
+};
+
 export type Task = {
   id: string;
   title: string;
   description: string | null;
   status: TaskStatus;
   priority: TaskPriority;
-  assigned_to: string | null;
+  project_id: string | null;
+  assigned_to: string | null; // null = "Herkes"
   created_by: string | null;
   due_date: string | null; // "YYYY-MM-DD"
+  accepted_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -35,16 +45,43 @@ export type Comment = {
 export type Attachment = {
   id: string;
   task_id: string;
-  file_url: string;
+  file_url: string; // özel bucket'taki dosya yolu
   file_name: string;
   file_type: string | null;
   uploaded_by: string | null;
   created_at: string;
 };
 
+export type Role = {
+  id: string;
+  name: string;
+  is_system: boolean;
+  created_by: string | null;
+  created_at: string;
+};
+
+export type MemberRole = {
+  profile_id: string;
+  role_id: string;
+  created_at: string;
+};
+
 // ---------------------------------------------------------------------
 // Supabase istemcisine verilen şema tipi (sorgular otomatik tiplenir)
 // ---------------------------------------------------------------------
+
+type Rel<
+  Name extends string,
+  Column extends string,
+  Target extends string,
+  OneToOne extends boolean = false,
+> = {
+  foreignKeyName: Name;
+  columns: [Column];
+  isOneToOne: OneToOne;
+  referencedRelation: Target;
+  referencedColumns: ["id"];
+};
 
 type Table<Row, Insert, Relationships extends unknown[] = []> = {
   Row: Row;
@@ -59,34 +96,20 @@ export type Database = {
       profiles: Table<
         Profile,
         Pick<Profile, "id"> & Partial<Omit<Profile, "id">>,
-        [
-          {
-            foreignKeyName: "profiles_id_fkey";
-            columns: ["id"];
-            isOneToOne: true;
-            referencedRelation: "users";
-            referencedColumns: ["id"];
-          },
-        ]
+        [Rel<"profiles_id_fkey", "id", "users", true>]
+      >;
+      projects: Table<
+        Project,
+        Pick<Project, "name"> & Partial<Omit<Project, "name">>,
+        [Rel<"projects_created_by_fkey", "created_by", "profiles">]
       >;
       tasks: Table<
         Task,
         Pick<Task, "title"> & Partial<Omit<Task, "title">>,
         [
-          {
-            foreignKeyName: "tasks_assigned_to_fkey";
-            columns: ["assigned_to"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "tasks_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
+          Rel<"tasks_assigned_to_fkey", "assigned_to", "profiles">,
+          Rel<"tasks_created_by_fkey", "created_by", "profiles">,
+          Rel<"tasks_project_id_fkey", "project_id", "projects">,
         ]
       >;
       task_comments: Table<
@@ -94,20 +117,8 @@ export type Database = {
         Pick<Comment, "task_id" | "content"> &
           Partial<Omit<Comment, "task_id" | "content">>,
         [
-          {
-            foreignKeyName: "task_comments_task_id_fkey";
-            columns: ["task_id"];
-            isOneToOne: false;
-            referencedRelation: "tasks";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "task_comments_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
+          Rel<"task_comments_task_id_fkey", "task_id", "tasks">,
+          Rel<"task_comments_user_id_fkey", "user_id", "profiles">,
         ]
       >;
       task_attachments: Table<
@@ -115,25 +126,29 @@ export type Database = {
         Pick<Attachment, "task_id" | "file_url" | "file_name"> &
           Partial<Omit<Attachment, "task_id" | "file_url" | "file_name">>,
         [
-          {
-            foreignKeyName: "task_attachments_task_id_fkey";
-            columns: ["task_id"];
-            isOneToOne: false;
-            referencedRelation: "tasks";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "task_attachments_uploaded_by_fkey";
-            columns: ["uploaded_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
+          Rel<"task_attachments_task_id_fkey", "task_id", "tasks">,
+          Rel<"task_attachments_uploaded_by_fkey", "uploaded_by", "profiles">,
+        ]
+      >;
+      roles: Table<
+        Role,
+        Pick<Role, "name"> & Partial<Omit<Role, "name">>,
+        [Rel<"roles_created_by_fkey", "created_by", "profiles">]
+      >;
+      member_roles: Table<
+        MemberRole,
+        Pick<MemberRole, "profile_id" | "role_id"> &
+          Partial<Pick<MemberRole, "created_at">>,
+        [
+          Rel<"member_roles_profile_id_fkey", "profile_id", "profiles">,
+          Rel<"member_roles_role_id_fkey", "role_id", "roles">,
         ]
       >;
     };
     Views: { [_ in never]: never };
-    Functions: { [_ in never]: never };
+    Functions: {
+      is_admin: { Args: Record<string, never>; Returns: boolean };
+    };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
   };
