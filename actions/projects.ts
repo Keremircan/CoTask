@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import type { PostgrestError } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/server";
-import { getCurrentUser } from "@/lib/auth";
+import { getUserId } from "@/lib/auth";
 import { isUuid } from "@/lib/tasks";
 
 export type ProjectResult = { error: string | null; projectId?: string };
@@ -22,14 +22,14 @@ function projectError(error: PostgrestError, fallback: string) {
 }
 
 export async function createProject(name: string): Promise<ProjectResult> {
-  const user = await getCurrentUser();
+  const userId = await getUserId();
   const parsed = readName(name);
   if (typeof parsed !== "string") return parsed;
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("projects")
-    .insert({ name: parsed, created_by: user.id })
+    .insert({ name: parsed, created_by: userId })
     .select("id")
     .single();
 
@@ -43,7 +43,7 @@ export async function renameProject(
   projectId: string,
   name: string,
 ): Promise<ProjectResult> {
-  await getCurrentUser();
+  await getUserId();
   if (!isUuid(projectId)) return { error: "Geçersiz proje." };
   const parsed = readName(name);
   if (typeof parsed !== "string") return parsed;
@@ -65,7 +65,7 @@ export async function renameProject(
 }
 
 export async function deleteProject(projectId: string): Promise<ProjectResult> {
-  await getCurrentUser();
+  await getUserId();
   if (!isUuid(projectId)) return { error: "Geçersiz proje." };
 
   const supabase = await createClient();

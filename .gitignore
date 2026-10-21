@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Taşıma sırasında üretilen ekip verisi (e-postalar, görevler)
+supabase/data-import.sql

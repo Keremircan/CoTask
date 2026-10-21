@@ -9,7 +9,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
-import { getCurrentUser } from "@/lib/auth";
+import { getUserId } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format";
 import { card } from "@/components/ui/styles";
 import { StatusBadge } from "@/components/tasks/status-badge";
@@ -68,7 +68,7 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
 }
 
 async function Stats() {
-  await getCurrentUser();
+  await getUserId(); // oturum kontrolü (yerel, Supabase isteği yok)
   const supabase = await createClient();
   const head = { count: "exact" as const, head: true };
 
@@ -97,7 +97,7 @@ async function Stats() {
 
 // Kullanıcıdan aksiyon bekleyen işler
 async function Inbox() {
-  const user = await getCurrentUser();
+  const userId = await getUserId();
   const supabase = await createClient();
   const fields = "id, title, status, created_at, project:projects!tasks_project_id_fkey(name)";
 
@@ -106,13 +106,13 @@ async function Inbox() {
       .from("tasks")
       .select(fields)
       .eq("status", "pending")
-      .or(`assigned_to.eq.${user.id},assigned_to.is.null`)
+      .or(`assigned_to.eq.${userId},assigned_to.is.null`)
       .order("created_at", { ascending: false })
       .limit(6),
     supabase
       .from("tasks")
       .select(fields)
-      .eq("created_by", user.id)
+      .eq("created_by", userId)
       .eq("status", "review")
       .order("created_at", { ascending: false })
       .limit(6),

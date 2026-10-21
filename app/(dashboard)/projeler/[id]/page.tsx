@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, CalendarClock } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
-import { getCurrentUser } from "@/lib/auth";
+import { getUserId } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format";
 import { BOARD_COLUMNS, isUuid, STATUS_DOTS } from "@/lib/tasks";
 import { getTaskFormOptions } from "@/lib/task-queries";
@@ -22,7 +22,7 @@ export default function ProjectBoardPage({ params }: PageProps<"/projeler/[id]">
 }
 
 async function Board({ params }: Pick<PageProps<"/projeler/[id]">, "params">) {
-  await getCurrentUser();
+  await getUserId(); // oturum kontrolü (yerel)
   const { id } = await params;
   if (!isUuid(id)) notFound();
 

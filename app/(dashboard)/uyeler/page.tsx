@@ -23,10 +23,11 @@ export default function MembersPage() {
 }
 
 async function Members() {
-  const user = await getCurrentUser();
   const supabase = await createClient();
 
-  const [{ data: profiles }, { data: roles }, { data: links }] = await Promise.all([
+  // Kullanıcı bilgisi (Admin mi?) ve sayfa verileri aynı turda, paralel
+  const [user, { data: profiles }, { data: roles }, { data: links }] = await Promise.all([
+    getCurrentUser(),
     supabase.from("profiles").select("id, full_name").order("full_name"),
     supabase.from("roles").select("id, name, is_system").order("is_system", { ascending: false }).order("name"),
     supabase.from("member_roles").select("profile_id, role_id"),

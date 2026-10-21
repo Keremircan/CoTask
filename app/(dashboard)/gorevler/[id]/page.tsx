@@ -37,13 +37,48 @@ export default function TaskDetailPage({ params }: PageProps<"/gorevler/[id]">) 
 }
 
 async function TaskDetail({ params }: Pick<PageProps<"/gorevler/[id]">, "params">) {
-  const user = await getCurrentUser();
   const { id } = await params;
   if (!isUuid(id)) notFound();
 
   const supabase = await createClient();
 
-  const [taskRes, commentsRes, attachmentsRes, formOptions] = await Promise.all([
+  // Tüm veriler tek turda, paralel çekilir (Supabase'e her tur ~300 ms).
+  // Dosya linkleri de ek listesi gelir gelmez, diğer sorguları beklemeden üretilir.
+  const attachmentsWithLinks = supabase
+    .from("task_attachments")
+    .select(
+      "id, file_url, file_name, file_type, created_at, uploader:profiles!task_attachments_uploaded_by_fkey(full_name)",
+    )
+    .eq("task_id", id)
+    .order("created_at", { ascending: false })
+    .then(async ({ data: rows }) => {
+      const list = rows ?? [];
+      const signed = new Map<string, string>();
+      if (list.length) {
+        const { data } = await supabase.storage
+          .from(ATTACHMENTS_BUCKET)
+          .createSignedUrls(
+            list.map((a) => a.file_url),
+            SIGNED_URL_TTL_SECONDS,
+          );
+        data?.forEach((item) => {
+          if (item.path && item.signedUrl) signed.set(item.path, item.signedUrl);
+        });
+      }
+      return list.map(
+        (a): TaskAttachment => ({
+          id: a.id,
+          file_name: a.file_name,
+          file_type: a.file_type,
+          created_at: a.created_at,
+          uploader: a.uploader,
+          signedUrl: signed.get(a.file_url) ?? null,
+        }),
+      );
+    });
+
+  const [user, taskRes, commentsRes, attachments, formOptions] = await Promise.all([
+    getCurrentUser(),
     supabase
       .from("tasks")
       .select(
@@ -62,13 +97,7 @@ async function TaskDetail({ params }: Pick<PageProps<"/gorevler/[id]">, "params"
       )
       .eq("task_id", id)
       .order("created_at", { ascending: true }),
-    supabase
-      .from("task_attachments")
-      .select(
-        "id, file_url, file_name, file_type, created_at, uploader:profiles!task_attachments_uploaded_by_fkey(full_name)",
-      )
-      .eq("task_id", id)
-      .order("created_at", { ascending: false }),
+    attachmentsWithLinks,
     getTaskFormOptions(),
   ]);
 
@@ -76,29 +105,6 @@ async function TaskDetail({ params }: Pick<PageProps<"/gorevler/[id]">, "params"
   if (!task) notFound();
 
   const comments = commentsRes.data ?? [];
-  const rawAttachments = attachmentsRes.data ?? [];
-
-  // Özel bucket: her ek için süreli imzalı link üret
-  const signed = new Map<string, string>();
-  if (rawAttachments.length) {
-    const { data } = await supabase.storage
-      .from(ATTACHMENTS_BUCKET)
-      .createSignedUrls(
-        rawAttachments.map((a) => a.file_url),
-        SIGNED_URL_TTL_SECONDS,
-      );
-    data?.forEach((item) => {
-      if (item.path && item.signedUrl) signed.set(item.path, item.signedUrl);
-    });
-  }
-  const attachments: TaskAttachment[] = rawAttachments.map((a) => ({
-    id: a.id,
-    file_name: a.file_name,
-    file_type: a.file_type,
-    created_at: a.created_at,
-    uploader: a.uploader,
-    signedUrl: signed.get(a.file_url) ?? null,
-  }));
 
   const links = extractLinks([
     { text: task.description, source: "Açıklama" },

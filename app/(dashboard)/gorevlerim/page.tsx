@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { createClient } from "@/utils/supabase/server";
-import { getCurrentUser } from "@/lib/auth";
+import { getUserId } from "@/lib/auth";
 import { TASK_LIST_SELECT } from "@/lib/task-queries";
 import { card } from "@/components/ui/styles";
 import { TaskList } from "@/components/tasks/task-list";
@@ -19,14 +19,14 @@ export default function MyTasksPage() {
 }
 
 async function MyTasks() {
-  const user = await getCurrentUser();
+  const userId = await getUserId(); // yerel, Supabase isteği yok
   const supabase = await createClient();
 
   // Bana atananlar + "Herkes"e atanmış ve henüz kimsenin almadığı görevler
   const { data: tasks, error } = await supabase
     .from("tasks")
     .select(TASK_LIST_SELECT)
-    .or(`assigned_to.eq.${user.id},and(assigned_to.is.null,status.eq.pending)`)
+    .or(`assigned_to.eq.${userId},and(assigned_to.is.null,status.eq.pending)`)
     .order("created_at", { ascending: false });
 
   const all = tasks ?? [];
@@ -52,7 +52,7 @@ async function MyTasks() {
           <SectionTitle title="Onay bekleyenler" count={waiting.length} />
           <TaskList
             tasks={waiting}
-            userId={user.id}
+            userId={userId}
             mode="assignee"
             empty="Kabul etmenizi bekleyen görev yok."
           />
@@ -62,7 +62,7 @@ async function MyTasks() {
           <SectionTitle title="Üzerimdeki işler" count={working.length} />
           <TaskList
             tasks={working}
-            userId={user.id}
+            userId={userId}
             mode="assignee"
             empty="Şu an üzerinizde iş yok."
           />
@@ -72,7 +72,7 @@ async function MyTasks() {
           <SectionTitle title="Tamamlananlar" count={done.length} />
           <TaskList
             tasks={done}
-            userId={user.id}
+            userId={userId}
             mode="assignee"
             empty="Henüz tamamlanan işiniz yok."
           />

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
-import { getCurrentUser } from "@/lib/auth";
+import { getUserId } from "@/lib/auth";
 import { isUuid } from "@/lib/tasks";
 import {
   ALLOWED_ATTACHMENT_TYPES,
@@ -23,7 +23,7 @@ export async function addComment(
   taskId: string,
   content: string,
 ): Promise<ActionResult> {
-  const user = await getCurrentUser();
+  const userId = await getUserId();
 
   const text = String(content ?? "").trim();
   if (!isUuid(taskId)) return { error: "Geçersiz görev." };
@@ -35,7 +35,7 @@ export async function addComment(
   const supabase = await createClient();
   const { error } = await supabase
     .from("task_comments")
-    .insert({ task_id: taskId, user_id: user.id, content: text });
+    .insert({ task_id: taskId, user_id: userId, content: text });
 
   if (error) {
     return {
@@ -54,7 +54,7 @@ export async function uploadAttachment(
   taskId: string,
   formData: FormData,
 ): Promise<ActionResult> {
-  const user = await getCurrentUser();
+  const userId = await getUserId();
   if (!isUuid(taskId)) return { error: "Geçersiz görev." };
 
   const file = formData.get("file");
@@ -70,13 +70,6 @@ export async function uploadAttachment(
   }
 
   const supabase = await createClient();
-
-  const { data: task } = await supabase
-    .from("tasks")
-    .select("id")
-    .eq("id", taskId)
-    .maybeSingle();
-  if (!task) return { error: "Görev bulunamadı." };
 
   // Depoda güvenli, benzersiz bir ad; asıl dosya adı tabloda saklanır
   const path = `${taskId}/${crypto.randomUUID()}.${ext}`;
@@ -99,13 +92,19 @@ export async function uploadAttachment(
     file_url: path, // özel bucket: görüntülerken süreli imzalı link üretilir
     file_name: fileName,
     file_type: file.type,
-    uploaded_by: user.id,
+    uploaded_by: userId,
   });
 
   if (insertError) {
     // Kaydı tutulamayan dosyayı depoda sahipsiz bırakma
+    // (görev silinmişse kayıt yabancı anahtar yüzünden reddedilir)
     await supabase.storage.from(ATTACHMENTS_BUCKET).remove([path]);
-    return { error: "Dosya kaydedilemedi. Lütfen tekrar deneyin." };
+    return {
+      error:
+        insertError.code === "23503"
+          ? "Görev bulunamadı."
+          : "Dosya kaydedilemedi. Lütfen tekrar deneyin.",
+    };
   }
 
   revalidateTaskPages();

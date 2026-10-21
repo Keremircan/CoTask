@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { createClient } from "@/utils/supabase/server";
-import { getCurrentUser } from "@/lib/auth";
+import { getUserId } from "@/lib/auth";
 import { getTaskFormOptions, TASK_LIST_SELECT } from "@/lib/task-queries";
 import { card } from "@/components/ui/styles";
 import { NewTaskButton } from "@/components/tasks/new-task-button";
@@ -20,14 +20,14 @@ export default function AssignedByMePage() {
 }
 
 async function AssignedByMe() {
-  const user = await getCurrentUser();
+  const userId = await getUserId(); // yerel, Supabase isteği yok
   const supabase = await createClient();
 
   const [{ data: tasks, error }, formOptions] = await Promise.all([
     supabase
       .from("tasks")
       .select(TASK_LIST_SELECT)
-      .eq("created_by", user.id)
+      .eq("created_by", userId)
       .order("created_at", { ascending: false }),
     getTaskFormOptions(),
   ]);
@@ -55,7 +55,7 @@ async function AssignedByMe() {
           <SectionTitle title="Süren işler" count={active.length} />
           <TaskList
             tasks={active}
-            userId={user.id}
+            userId={userId}
             mode="owner"
             formOptions={formOptions}
             empty="Süren bir işiniz yok. Sağ üstteki “Yeni İş Ata” ile başlayın."
@@ -66,7 +66,7 @@ async function AssignedByMe() {
           <SectionTitle title="Tamamlananlar" count={done.length} />
           <TaskList
             tasks={done}
-            userId={user.id}
+            userId={userId}
             mode="owner"
             formOptions={formOptions}
             empty="Henüz tamamlanan iş yok."

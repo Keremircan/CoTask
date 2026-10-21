@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import type { PostgrestError } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/server";
-import { getCurrentUser } from "@/lib/auth";
+import { getUserId } from "@/lib/auth";
 import { EVERYONE, isUuid } from "@/lib/tasks";
 import { ATTACHMENTS_BUCKET } from "@/lib/attachments";
 
@@ -55,14 +55,14 @@ function readTaskForm(formData: FormData): TaskFields | string {
 }
 
 export async function createTask(formData: FormData): Promise<CreateTaskResult> {
-  const user = await getCurrentUser();
+  const userId = await getUserId();
   const fields = readTaskForm(formData);
   if (typeof fields === "string") return { error: fields, taskId: null };
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("tasks")
-    .insert({ ...fields, created_by: user.id, status: "pending" })
+    .insert({ ...fields, created_by: userId, status: "pending" })
     .select("id")
     .single();
 
@@ -78,7 +78,7 @@ export async function updateTask(
   taskId: string,
   formData: FormData,
 ): Promise<ActionResult> {
-  const user = await getCurrentUser();
+  const userId = await getUserId();
   if (!isUuid(taskId)) return { error: "Geçersiz görev." };
 
   const fields = readTaskForm(formData);
@@ -89,7 +89,7 @@ export async function updateTask(
     .from("tasks")
     .update(fields)
     .eq("id", taskId)
-    .eq("created_by", user.id)
+    .eq("created_by", userId)
     .select("id");
 
   if (error) return { error: dbError(error, "Görev güncellenemedi.") };
@@ -100,7 +100,7 @@ export async function updateTask(
 }
 
 export async function deleteTask(taskId: string): Promise<ActionResult> {
-  const user = await getCurrentUser();
+  const userId = await getUserId();
   if (!isUuid(taskId)) return { error: "Geçersiz görev." };
 
   const supabase = await createClient();
@@ -115,7 +115,7 @@ export async function deleteTask(taskId: string): Promise<ActionResult> {
     .from("tasks")
     .delete()
     .eq("id", taskId)
-    .eq("created_by", user.id)
+    .eq("created_by", userId)
     .select("id");
 
   if (error) return { error: dbError(error, "Görev silinemedi.") };
@@ -133,16 +133,16 @@ export async function deleteTask(taskId: string): Promise<ActionResult> {
 
 // Kabul Et: atanan kişi (ya da "Herkes" görevinde ilk kabul eden) görevi alır
 export async function acceptTask(taskId: string): Promise<ActionResult> {
-  const user = await getCurrentUser();
+  const userId = await getUserId();
   if (!isUuid(taskId)) return { error: "Geçersiz görev." };
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("tasks")
-    .update({ assigned_to: user.id, status: "in_progress" })
+    .update({ assigned_to: userId, status: "in_progress" })
     .eq("id", taskId)
     .eq("status", "pending")
-    .or(`assigned_to.is.null,assigned_to.eq.${user.id}`)
+    .or(`assigned_to.is.null,assigned_to.eq.${userId}`)
     .select("id");
 
   if (error) return { error: dbError(error, "Görev kabul edilemedi.") };
@@ -156,7 +156,7 @@ export async function acceptTask(taskId: string): Promise<ActionResult> {
 
 // Kontrole gönder: sadece görevi alan kişi
 export async function submitForReview(taskId: string): Promise<ActionResult> {
-  const user = await getCurrentUser();
+  const userId = await getUserId();
   if (!isUuid(taskId)) return { error: "Geçersiz görev." };
 
   const supabase = await createClient();
@@ -165,7 +165,7 @@ export async function submitForReview(taskId: string): Promise<ActionResult> {
     .update({ status: "review" })
     .eq("id", taskId)
     .eq("status", "in_progress")
-    .eq("assigned_to", user.id)
+    .eq("assigned_to", userId)
     .select("id");
 
   if (error) return { error: dbError(error, "Görev kontrole gönderilemedi.") };
@@ -177,7 +177,7 @@ export async function submitForReview(taskId: string): Promise<ActionResult> {
 
 // Tamamlandı: sadece görevi atayan kişi, görev kabul edildikten sonra
 export async function completeTask(taskId: string): Promise<ActionResult> {
-  const user = await getCurrentUser();
+  const userId = await getUserId();
   if (!isUuid(taskId)) return { error: "Geçersiz görev." };
 
   const supabase = await createClient();
@@ -185,7 +185,7 @@ export async function completeTask(taskId: string): Promise<ActionResult> {
     .from("tasks")
     .update({ status: "done" })
     .eq("id", taskId)
-    .eq("created_by", user.id)
+    .eq("created_by", userId)
     .in("status", ["in_progress", "review"])
     .select("id");
 
