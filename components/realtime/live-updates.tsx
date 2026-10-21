@@ -1,0 +1,114 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
+
+// Değişiklikleri dinlenen tablolar (supabase/realtime.sql ile aynı liste)
+const TABLES = [
+  "tasks",
+  "task_comments",
+  "task_attachments",
+  "projects",
+  "profiles",
+  "roles",
+  "member_roles",
+] as const;
+
+// Art arda gelen olayları tek yenilemede toplamak için bekleme süresi
+const REFRESH_DELAY_MS = 250;
+
+type Status = "connecting" | "live" | "offline";
+
+// Ekipten biri veri değiştirdiğinde sayfanın sunucu verisini sessizce yeniler.
+// router.refresh() tam sayfa yenilemesi yapmaz: açık formlar ve yazılan metinler korunur.
+export function LiveUpdates() {
+  const router = useRouter();
+  const [status, setStatus] = useState<Status>("connecting");
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    const scheduleRefresh = () => {
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = setTimeout(() => router.refresh(), REFRESH_DELAY_MS);
+    };
+
+    let cancelled = false;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    async function connect() {
+      // Önce oturum token'ını Realtime'a ver: token'sız kanal RLS yüzünden
+      // hiçbir değişikliği alamaz (abone görünür ama olay gelmez).
+      const { data } = await supabase.auth.getSession();
+      if (cancelled) return;
+      if (!data.session) {
+        setStatus("offline");
+        return;
+      }
+      await supabase.realtime.setAuth(data.session.access_token);
+      if (cancelled) return;
+
+      let ch = supabase.channel("cotask-live");
+      for (const table of TABLES) {
+        ch = ch.on(
+          "postgres_changes",
+          { event: "*", schema: "public", table },
+          scheduleRefresh,
+        );
+      }
+      ch.subscribe((state) => {
+        if (state === "SUBSCRIBED") {
+          setStatus("live");
+          // Bağlantı kurulana (ya da koptuktan sonra yeniden kurulana) kadar
+          // kaçmış olabilecek değişiklikleri almak için bir kez yenile
+          scheduleRefresh();
+        }
+        else if (state === "CHANNEL_ERROR" || state === "TIMED_OUT" || state === "CLOSED") {
+          setStatus("offline");
+        }
+      });
+      channel = ch;
+    }
+    connect();
+
+    // Sekme uykudayken (tarayıcı arka plan sekmelerini yavaşlatır) kaçan
+    // değişiklikler için sekmeye/pencereye dönüşte bir kez yenile
+    const onVisible = () => {
+      if (document.visibilityState === "visible") scheduleRefresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", scheduleRefresh);
+    window.addEventListener("online", scheduleRefresh);
+
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", scheduleRefresh);
+      window.removeEventListener("online", scheduleRefresh);
+      cancelled = true;
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [router]);
+
+  const ui = {
+    live: { dot: "bg-emerald-400", text: "Canlı", title: "Değişiklikler anında görünür" },
+    connecting: { dot: "bg-amber-400 animate-pulse", text: "Bağlanıyor…", title: "Canlı bağlantı kuruluyor" },
+    offline: {
+      dot: "bg-neutral-500",
+      text: "Çevrimdışı",
+      title: "Canlı bağlantı yok; sayfayı yenileyerek güncel veriyi görebilirsiniz",
+    },
+  }[status];
+
+  return (
+    <span
+      title={ui.title}
+      className="inline-flex items-center gap-1.5 text-xs text-neutral-400"
+    >
+      <span className={`size-1.5 rounded-full ${ui.dot}`} />
+      {ui.text}
+    </span>
+  );
+}

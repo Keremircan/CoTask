@@ -4,6 +4,7 @@ import { getProjects } from "@/lib/projects";
 import { SidebarShell } from "./_components/sidebar-shell";
 import { SidebarNav, SidebarNavList } from "./_components/sidebar-nav";
 import { UserMenu } from "./_components/user-menu";
+import { SidebarFooter, SidebarFooterSkeleton } from "./_components/sidebar-footer";
 
 export default function DashboardLayout({ children }: LayoutProps<"/">) {
   return (
@@ -19,6 +20,9 @@ export default function DashboardLayout({ children }: LayoutProps<"/">) {
         </div>
         <Suspense fallback={<SidebarSkeleton />}>
           <SidebarData />
+        </Suspense>
+        <Suspense fallback={<SidebarFooterSkeleton />}>
+          <SidebarFooter />
         </Suspense>
       </SidebarShell>
 
@@ -50,7 +54,7 @@ async function SidebarData() {
 
 function SidebarSkeleton() {
   return (
-    <div className="animate-pulse space-y-2 px-3">
+    <div className="flex-1 animate-pulse space-y-2 px-3">
       {Array.from({ length: 4 }, (_, i) => (
         <div key={i} className="h-11 rounded-lg bg-white/[0.04]" />
       ))}

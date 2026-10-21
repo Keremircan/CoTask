@@ -201,7 +201,11 @@ async function TaskDetail({ params }: Pick<PageProps<"/gorevler/[id]">, "params"
           </section>
 
           <div id="yorumlar" className="scroll-mt-20">
-            <TaskComments taskId={task.id} comments={comments} />
+            <TaskComments
+              taskId={task.id}
+              comments={comments}
+              currentUserName={user.name}
+            />
           </div>
         </div>
 

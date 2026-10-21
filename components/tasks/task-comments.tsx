@@ -15,9 +15,11 @@ export type TaskComment = {
 export function TaskComments({
   taskId,
   comments,
+  currentUserName,
 }: {
   taskId: string;
   comments: TaskComment[];
+  currentUserName: string;
 }) {
   return (
     <section className={`${card} p-6 sm:p-7`}>
@@ -62,7 +64,7 @@ export function TaskComments({
         </ol>
       )}
 
-      <CommentForm taskId={taskId} />
+      <CommentForm taskId={taskId} authorName={currentUserName} />
     </section>
   );
 }

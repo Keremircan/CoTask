@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarClock } from "lucide-react";
+import { ArrowRight, CalendarClock } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { getCurrentUser } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format";
@@ -31,7 +31,9 @@ async function Board({ params }: Pick<PageProps<"/projeler/[id]">, "params">) {
     supabase.from("projects").select("id, name").eq("id", id).maybeSingle(),
     supabase
       .from("tasks")
-      .select("id, title, status, created_at")
+      .select(
+        "id, title, status, created_at, assigned_to, creator:profiles!tasks_created_by_fkey(full_name), assignee:profiles!tasks_assigned_to_fkey(full_name)",
+      )
       .eq("project_id", id)
       .order("created_at", { ascending: false }),
     getTaskFormOptions(),
@@ -90,7 +92,15 @@ async function Board({ params }: Pick<PageProps<"/projeler/[id]">, "params">) {
                         <p className="text-[15px] leading-snug font-bold text-slate-900 [overflow-wrap:anywhere]">
                           {task.title}
                         </p>
-                        <p className="mt-2 flex items-center gap-1.5 text-[13px] text-slate-500">
+                        <FromTo
+                          from={task.creator?.full_name ?? "Eski üye"}
+                          to={
+                            task.assigned_to === null
+                              ? "Herkes"
+                              : (task.assignee?.full_name ?? "Eski üye")
+                          }
+                        />
+                        <p className="mt-1.5 flex items-center gap-1.5 text-[13px] text-slate-500">
                           <CalendarClock className="size-3.5" />
                           {formatDateTime(task.created_at)}
                         </p>
@@ -109,6 +119,21 @@ async function Board({ params }: Pick<PageProps<"/projeler/[id]">, "params">) {
         </div>
       </div>
     </>
+  );
+}
+
+// Dar kartlarda sadece ilk ad; tam ad üzerine gelince görünür
+function FromTo({ from, to }: { from: string; to: string }) {
+  const first = (name: string) => name.split(/\s+/)[0] || name;
+  return (
+    <p
+      title={`${from} → ${to}`}
+      className="mt-1.5 flex min-w-0 items-center gap-1.5 text-[13px] font-medium text-slate-600"
+    >
+      <span className="truncate">{first(from)}</span>
+      <ArrowRight className="size-3.5 shrink-0 text-slate-400" />
+      <span className="truncate">{first(to)}</span>
+    </p>
   );
 }
 
