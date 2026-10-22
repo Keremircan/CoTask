@@ -3,7 +3,8 @@
 
 // pending: Onay Bekliyor · in_progress: Yapılıyor · review: Kontrol · done: Tamamlandı
 export type TaskStatus = "pending" | "in_progress" | "review" | "done";
-export type TaskPriority = "low" | "medium" | "high" | "urgent";
+// none: Önceliksiz · low: Düşük · medium: Orta · high: Yüksek · urgent: Acil
+export type TaskPriority = "none" | "low" | "medium" | "high" | "urgent";
 
 export type Profile = {
   id: string;

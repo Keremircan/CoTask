@@ -9,6 +9,7 @@ import { formatDateTime } from "@/lib/format";
 import { BOARD_COLUMNS, isUuid, STATUS_DOTS } from "@/lib/tasks";
 import { getTaskFormOptions } from "@/lib/task-queries";
 import { NewTaskButton } from "@/components/tasks/new-task-button";
+import { PriorityBadge } from "@/components/tasks/priority";
 
 export const metadata: Metadata = { title: "Proje · CoTask" };
 
@@ -32,7 +33,7 @@ async function Board({ params }: Pick<PageProps<"/projeler/[id]">, "params">) {
     supabase
       .from("tasks")
       .select(
-        "id, title, status, created_at, assigned_to, creator:profiles!tasks_created_by_fkey(full_name), assignee:profiles!tasks_assigned_to_fkey(full_name)",
+        "id, title, status, priority, created_at, assigned_to, creator:profiles!tasks_created_by_fkey(full_name), assignee:profiles!tasks_assigned_to_fkey(full_name)",
       )
       .eq("project_id", id)
       .order("created_at", { ascending: false }),
@@ -89,9 +90,12 @@ async function Board({ params }: Pick<PageProps<"/projeler/[id]">, "params">) {
                         href={`/gorevler/${task.id}`}
                         className="block rounded-xl border border-transparent bg-white p-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition hover:border-teal-200 hover:shadow-md"
                       >
-                        <p className="text-[15px] leading-snug font-bold text-slate-900 [overflow-wrap:anywhere]">
-                          {task.title}
-                        </p>
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-[15px] leading-snug font-bold text-slate-900 [overflow-wrap:anywhere]">
+                            {task.title}
+                          </p>
+                          <PriorityBadge priority={task.priority} size="xs" />
+                        </div>
                         <FromTo
                           from={task.creator?.full_name ?? "Eski üye"}
                           to={

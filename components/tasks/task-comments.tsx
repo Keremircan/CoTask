@@ -59,9 +59,13 @@ export function TaskComments({
       {comments.length === 0 ? (
         <div className="mb-6 flex items-center gap-3 rounded-xl border border-dashed border-slate-200 px-5 py-6 text-slate-500">
           <MessagesSquare className="size-5 shrink-0 text-slate-400" />
-          {selectedDay
-            ? `${formatDate(`${selectedDay}T12:00:00Z`)} tarihinde yorum yok.`
-            : "Henüz yorum yok. İlk yorumu sen yaz."}
+          {selectedDay === null
+            ? "Henüz yorum yok. İlk yorumu sen yaz."
+            : selectedDay === today
+              ? totalCount
+                ? "Bugün yorum yok. Önceki günler için oklara ya da “Tümü”ne bakın."
+                : "Henüz yorum yok. İlk yorumu sen yaz."
+              : `${formatDate(`${selectedDay}T12:00:00Z`)} tarihinde yorum yok.`}
         </div>
       ) : (
         <ol className="mb-6 space-y-5">

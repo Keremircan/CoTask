@@ -11,6 +11,8 @@ import {
   MAX_ATTACHMENT_BYTES,
 } from "@/lib/attachments";
 import { EVERYONE } from "@/lib/tasks";
+import type { TaskPriority } from "@/types/database";
+import { PrioritySelect } from "./priority-select";
 import { Modal } from "@/components/ui/modal";
 import { SelectField } from "@/components/ui/select-field";
 import { field, fieldLabel, ghostButton, primaryButton } from "@/components/ui/styles";
@@ -26,6 +28,7 @@ export type EditableTask = {
   description: string | null;
   project_id: string | null;
   assigned_to: string | null;
+  priority: TaskPriority;
 };
 
 export function TaskFormDialog({
@@ -170,7 +173,7 @@ export function TaskFormDialog({
           </p>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-5 sm:grid-cols-3">
           <div>
             <label htmlFor="task-project" className={fieldLabel}>
               Bağlı olduğu proje
@@ -213,6 +216,16 @@ export function TaskFormDialog({
                 </option>
               ))}
             </SelectField>
+          </div>
+          <div>
+            <label htmlFor="task-priority" className={fieldLabel}>
+              Öncelik
+            </label>
+            <PrioritySelect
+              id="task-priority"
+              defaultValue={task?.priority ?? "none"}
+              disabled={pending}
+            />
           </div>
         </div>
 

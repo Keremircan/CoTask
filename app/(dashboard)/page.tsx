@@ -13,7 +13,8 @@ import { getUserId } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format";
 import { card } from "@/components/ui/styles";
 import { StatusBadge } from "@/components/tasks/status-badge";
-import type { TaskStatus } from "@/types/database";
+import type { TaskPriority, TaskStatus } from "@/types/database";
+import { PriorityBadge } from "@/components/tasks/priority";
 import { PageHeader } from "./_components/page-header";
 
 export default function HomePage() {
@@ -99,7 +100,7 @@ async function Stats() {
 async function Inbox() {
   const userId = await getUserId();
   const supabase = await createClient();
-  const fields = "id, title, status, created_at, project:projects!tasks_project_id_fkey(name)";
+  const fields = "id, title, status, priority, created_at, project:projects!tasks_project_id_fkey(name)";
 
   const [waitingRes, reviewRes] = await Promise.all([
     supabase
@@ -142,6 +143,7 @@ type InboxTask = {
   id: string;
   title: string;
   status: TaskStatus;
+  priority: TaskPriority;
   created_at: string;
   project: { name: string } | null;
 };
@@ -188,7 +190,10 @@ function InboxCard({
                     {t.project?.name ?? "Projesiz"} · {formatDateTime(t.created_at)}
                   </span>
                 </span>
-                <StatusBadge status={t.status} />
+                <span className="flex shrink-0 items-center gap-1.5">
+                  <PriorityBadge priority={t.priority} size="xs" />
+                  <StatusBadge status={t.status} />
+                </span>
               </Link>
             </li>
           ))}

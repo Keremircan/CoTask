@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { CalendarClock, FolderKanban, MessageSquare, UserRound } from "lucide-react";
-import type { TaskStatus } from "@/types/database";
+import type { TaskPriority, TaskStatus } from "@/types/database";
 import { formatDateTime } from "@/lib/format";
 import { previewText } from "@/lib/tasks";
 import { StatusBadge } from "./status-badge";
+import { PriorityBadge } from "./priority";
 import { TaskActions } from "./task-actions";
 import type { TaskFormOptions } from "./task-form-dialog";
 
@@ -12,6 +13,7 @@ export type TaskListItem = {
   title: string;
   description: string | null;
   status: TaskStatus;
+  priority: TaskPriority;
   created_at: string;
   assigned_to: string | null;
   created_by: string | null;
@@ -67,6 +69,7 @@ export function TaskList({
                   {task.title}
                 </Link>
                 <StatusBadge status={task.status} />
+                <PriorityBadge priority={task.priority} />
               </div>
               {task.description && (
                 <p className="mt-1 line-clamp-1 text-[15px] text-slate-500">

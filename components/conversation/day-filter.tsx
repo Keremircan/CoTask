@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { CalendarDays, ChevronLeft, ChevronRight, LoaderCircle } from "lucide-react";
+import { ALL_DAYS } from "@/lib/days";
 
 // Konuşmanın üstündeki gün seçici. Seçilen gün adres çubuğunda ?gun=YYYY-MM-DD
 // olarak tutulur (sayfa yenilense ya da link paylaşılsa da aynı gün açılır).
@@ -26,9 +27,11 @@ export function DayFilter({
   const pathname = usePathname();
   const [pending, startTransition] = useTransition();
 
+  // Bugün varsayılandır (parametresiz adres); "Tümü" için ?gun=tumu
   function go(day: string | null) {
+    const query = day === null ? `?gun=${ALL_DAYS}` : day === today ? "" : `?gun=${day}`;
     startTransition(() => {
-      router.replace(`${pathname}${day ? `?gun=${day}` : ""}${anchor}`, { scroll: false });
+      router.replace(`${pathname}${query}${anchor}`, { scroll: false });
     });
   }
 
@@ -65,7 +68,7 @@ export function DayFilter({
         type="date"
         value={selected ?? ""}
         max={today}
-        onChange={(e) => go(e.target.value || null)}
+        onChange={(e) => go(e.target.value || today)}
         className="h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-sm text-slate-800 outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10"
       />
       <button

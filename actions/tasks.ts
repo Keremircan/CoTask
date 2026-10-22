@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import type { PostgrestError } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/server";
 import { getUserId } from "@/lib/auth";
-import { EVERYONE, isUuid } from "@/lib/tasks";
+import { EVERYONE, isTaskPriority, isUuid } from "@/lib/tasks";
+import type { TaskPriority } from "@/types/database";
 import { ATTACHMENTS_BUCKET } from "@/lib/attachments";
 
 export type ActionResult = { error: string | null };
@@ -30,6 +31,7 @@ type TaskFields = {
   description: string | null;
   project_id: string;
   assigned_to: string | null;
+  priority: TaskPriority;
 };
 
 function readTaskForm(formData: FormData): TaskFields | string {
@@ -37,6 +39,7 @@ function readTaskForm(formData: FormData): TaskFields | string {
   const description = String(formData.get("description") ?? "").trim();
   const projectId = formData.get("project_id");
   const assignee = formData.get("assigned_to");
+  const priority = formData.get("priority") ?? "none";
 
   if (!title) return "Görev adı zorunludur.";
   if (title.length > MAX_TITLE) return "Görev adı en fazla 200 karakter olabilir.";
@@ -45,12 +48,14 @@ function readTaskForm(formData: FormData): TaskFields | string {
   if (assignee !== EVERYONE && !isUuid(assignee)) {
     return "Görevi atayacağınız kişiyi seçin.";
   }
+  if (!isTaskPriority(priority)) return "Geçersiz öncelik.";
 
   return {
     title,
     description: description || null,
     project_id: projectId,
     assigned_to: assignee === EVERYONE ? null : (assignee as string),
+    priority,
   };
 }
 

@@ -1,6 +1,6 @@
 -- =====================================================================
 -- CoTask — YENİ PROJE İÇİN TAM KURULUM (tek dosya)
--- Sırayla şunları içerir: schema.sql + storage.sql + revize.sql + realtime.sql + genel.sql + silme.sql + linkler-duzeltme.sql
+-- Sırayla şunları içerir: schema.sql + storage.sql + revize.sql + realtime.sql + genel.sql + silme.sql + linkler-duzeltme.sql + oncelik.sql
 --
 -- ÖNEMLİ: Bu dosyayı, 3 kullanıcıyı Authentication > Users'tan açtıktan
 -- SONRA çalıştırın; böylece profiller ve Admin ataması otomatik oluşur.
@@ -854,3 +854,35 @@ create policy "Removed links update" on public.removed_links
 -- Kontrol: 1 satır görmelisiniz
 select policyname from pg_policies
 where tablename = 'removed_links' and policyname = 'Removed links update';
+
+
+-- #####################################################################
+-- ##### oncelik.sql
+-- #####################################################################
+
+-- =====================================================================
+-- CoTask — Görev önceliği: 5 seviye
+--   none (Önceliksiz) · low (Düşük) · medium (Orta) · high (Yüksek) · urgent (Acil)
+-- Varsayılan "Önceliksiz". Supabase SQL Editor'de çalıştırın. Tekrar çalıştırılabilir.
+-- =====================================================================
+
+alter table public.tasks drop constraint if exists tasks_priority_check;
+alter table public.tasks
+  add constraint tasks_priority_check
+  check (priority in ('none', 'low', 'medium', 'high', 'urgent'));
+alter table public.tasks alter column priority set default 'none';
+
+-- Şimdiye kadar formda öncelik seçimi yoktu; tüm görevler kendiliğinden
+-- "medium" kaydedildi. Bunlar kimsenin seçmediği değerler olduğu için
+-- "Önceliksiz"e çevrilir. (Sadece bu dosya ilk kez çalıştırılırken anlamlı.)
+do $$
+begin
+  if not exists (select 1 from public.tasks where priority = 'none') then
+    -- Görev akışı kuralları (trigger) SQL Editor'de devre dışıdır (oturum yok)
+    update public.tasks set priority = 'none' where priority = 'medium';
+  end if;
+end;
+$$;
+
+-- Kontrol: önceliklere göre görev sayısı
+select priority, count(*) from public.tasks group by priority order by priority;

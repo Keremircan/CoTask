@@ -5,10 +5,12 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarDays, FolderKanban, Hand } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { getCurrentUser } from "@/lib/auth";
-import { isUuid, PRIORITY_LABELS } from "@/lib/tasks";
+import { isUuid } from "@/lib/tasks";
+import { PriorityBadge } from "@/components/tasks/priority";
 import { dayKey, formatDateTime } from "@/lib/format";
 import { ATTACHMENTS_BUCKET } from "@/lib/attachments";
 import { extractLinks, withoutRemoved } from "@/lib/links";
+import { parseDayParam, todayKey } from "@/lib/days";
 import { getTaskFormOptions } from "@/lib/task-queries";
 import { Markdown } from "@/components/markdown/markdown";
 import { Avatar } from "@/components/ui/avatar";
@@ -27,8 +29,6 @@ export const metadata: Metadata = { title: "Görev detayı · CoTask" };
 // İmzalı dosya linklerinin geçerlilik süresi
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
 
-const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
-
 export default function TaskDetailPage({ params, searchParams }: PageProps<"/gorevler/[id]">) {
   return (
     // params/searchParams istek anında okunur; Suspense içinde kalmalı
@@ -44,7 +44,6 @@ async function TaskDetail({
 }: Pick<PageProps<"/gorevler/[id]">, "params" | "searchParams">) {
   const [{ id }, { gun }] = await Promise.all([params, searchParams]);
   if (!isUuid(id)) notFound();
-  const selectedDay = typeof gun === "string" && DAY_RE.test(gun) ? gun : null;
 
   const supabase = await createClient();
 
@@ -113,7 +112,9 @@ async function TaskDetail({
   const comments = commentsRes.data ?? [];
 
   // Gün seçici: mesaj olan günler ve seçilen günün yorumları
-  const today = dayKey(new Date().toISOString());
+  // Varsayılan: bugün. "Tümü" seçilince ?gun=tumu
+  const today = todayKey();
+  const selectedDay = parseDayParam(gun, today);
   const days = [...new Set(comments.map((c) => dayKey(c.created_at)))];
   const shownComments = selectedDay
     ? comments.filter((c) => dayKey(c.created_at) === selectedDay)
@@ -169,11 +170,7 @@ async function TaskDetail({
           <section className={`${card} p-6 sm:p-7`}>
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge status={task.status} />
-              {task.priority !== "medium" && (
-                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">
-                  {PRIORITY_LABELS[task.priority]} öncelik
-                </span>
-              )}
+              <PriorityBadge priority={task.priority} />
             </div>
             <h1 className="mt-3 text-[28px] leading-tight font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere]">
               {task.title}

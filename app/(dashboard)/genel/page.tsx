@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/server";
 import { getCurrentUser } from "@/lib/auth";
 import { dayKey, formatDate, formatDateTime, formatTime } from "@/lib/format";
 import { extractLinks, GENERAL_LINK_SCOPE, withoutRemoved } from "@/lib/links";
+import { parseDayParam, todayKey } from "@/lib/days";
 import { kindOfMime } from "@/lib/general-files";
 import { Markdown } from "@/components/markdown/markdown";
 import { Avatar } from "@/components/ui/avatar";
@@ -30,7 +31,6 @@ export const metadata: Metadata = { title: "Genel · CoTask" };
 const MESSAGE_LIMIT = 300;
 // Gün listesi ve LİNKLER için okunan en fazla mesaj
 const HISTORY_LIMIT = 3000;
-const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 // Aynı kişinin bu süre içindeki ardışık mesajları tek blokta gösterilir
 const GROUP_WINDOW_MS = 5 * 60 * 1000;
 
@@ -74,8 +74,9 @@ async function General({ searchParams }: Pick<PageProps<"/genel">, "searchParams
   const files = filesRes.data ?? [];
 
   // Gün seçici: seçilen günün mesajları; seçilmemişse son mesajlar
-  const selectedDay = typeof gun === "string" && DAY_RE.test(gun) ? gun : null;
-  const today = dayKey(new Date().toISOString());
+  // Varsayılan: bugün. "Tümü" seçilince ?gun=tumu
+  const today = todayKey();
+  const selectedDay = parseDayParam(gun, today);
   const days = [...new Set(history.map((m) => dayKey(m.created_at)))];
   const messages = selectedDay
     ? history.filter((m) => dayKey(m.created_at) === selectedDay)
@@ -139,7 +140,9 @@ async function General({ searchParams }: Pick<PageProps<"/genel">, "searchParams
           ) : messages.length === 0 && selectedDay ? (
             <div className="flex h-full flex-col items-center justify-center text-center text-slate-500">
               <p className="font-bold text-slate-900">
-                {formatDate(`${selectedDay}T12:00:00Z`)} tarihinde mesaj yok
+                {selectedDay === today
+                  ? "Bugün henüz mesaj yok"
+                  : `${formatDate(`${selectedDay}T12:00:00Z`)} tarihinde mesaj yok`}
               </p>
               <p className="mt-1 text-[15px]">
                 Oklarla mesaj olan günlere geçebilir ya da &quot;Tümü&quot;ne dönebilirsiniz.

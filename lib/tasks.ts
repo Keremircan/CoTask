@@ -36,19 +36,20 @@ export const STATUS_DOTS: Record<TaskStatus, string> = {
   done: "bg-teal-500",
 };
 
+// Öncelikler, seçim listesindeki sırayla (en düşükten en acile)
+export const TASK_PRIORITIES: TaskPriority[] = ["none", "low", "medium", "high", "urgent"];
+
 export const PRIORITY_LABELS: Record<TaskPriority, string> = {
+  none: "Önceliksiz",
   low: "Düşük",
   medium: "Orta",
   high: "Yüksek",
   urgent: "Acil",
 };
 
-export const PRIORITY_STYLES: Record<TaskPriority, string> = {
-  low: "bg-slate-100 text-slate-600 ring-slate-200",
-  medium: "bg-sky-50 text-sky-700 ring-sky-200",
-  high: "bg-orange-50 text-orange-700 ring-orange-200",
-  urgent: "bg-rose-50 text-rose-700 ring-rose-200",
-};
+export function isTaskPriority(value: unknown): value is TaskPriority {
+  return TASK_PRIORITIES.includes(value as TaskPriority);
+}
 
 // Formdaki "Atanacak kişi" kutusunda "Herkes" seçeneğinin değeri
 export const EVERYONE = "everyone";
