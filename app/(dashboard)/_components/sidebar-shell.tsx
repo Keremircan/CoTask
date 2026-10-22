@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { Menu, X } from "lucide-react";
+import { Logo } from "@/components/ui/logo";
 
 // Masaüstünde sabit sol menü; mobilde soldan açılan çekmece
 export function SidebarShell({ children }: { children: ReactNode }) {
@@ -21,7 +22,8 @@ export function SidebarShell({ children }: { children: ReactNode }) {
   return (
     <>
       {/* Mobil üst çubuk */}
-      <div className="fixed inset-x-0 top-0 z-30 flex h-14 items-center gap-3 border-b border-white/5 bg-[#141414] px-4 lg:hidden">
+      {/* Çentikli ekranlarda durum çubuğunun altında kalsın diye güvenli alan kadar üst boşluk */}
+      <div className="fixed inset-x-0 top-0 z-30 flex h-[calc(3.5rem+env(safe-area-inset-top))] items-center gap-3 border-b border-white/5 bg-[#141414] px-4 pt-[env(safe-area-inset-top)] lg:hidden">
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -30,6 +32,7 @@ export function SidebarShell({ children }: { children: ReactNode }) {
         >
           <Menu className="size-6" />
         </button>
+        <Logo size={26} className="rounded-[7px]" />
         <span className="text-[17px] font-semibold text-white">CoTask</span>
       </div>
 
@@ -47,7 +50,7 @@ export function SidebarShell({ children }: { children: ReactNode }) {
           if ((e.target as Element).closest("a")) setOpen(false);
         }}
         className={[
-          "fixed inset-y-0 left-0 z-50 flex w-[300px] max-w-[85vw] flex-col border-r border-white/5 bg-[#141414] transition-transform duration-200",
+          "fixed inset-y-0 left-0 z-50 flex w-[300px] max-w-[85vw] flex-col border-r border-white/5 bg-[#141414] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] transition-transform duration-200",
           "lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:max-w-none lg:translate-x-0",
           open ? "translate-x-0" : "-translate-x-full",
         ].join(" ")}
@@ -57,7 +60,7 @@ export function SidebarShell({ children }: { children: ReactNode }) {
             type="button"
             onClick={() => setOpen(false)}
             aria-label="Menüyü kapat"
-            className="absolute top-4 -right-12 rounded-lg p-1.5 text-white lg:hidden"
+            className="absolute top-[calc(1rem+env(safe-area-inset-top))] -right-12 rounded-lg p-1.5 text-white lg:hidden"
           >
             <X className="size-6" />
           </button>

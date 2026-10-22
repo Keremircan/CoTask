@@ -88,7 +88,7 @@ async function Stats() {
   ];
 
   return (
-    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
       {items.map((item) => (
         <StatCard key={item.label} {...item} />
       ))}
@@ -207,13 +207,13 @@ type StatItem = { value: number; label: string; icon: LucideIcon; tone: string }
 
 function StatCard({ value, label, icon: Icon, tone }: StatItem) {
   return (
-    <div className={`${card} flex items-center gap-5 p-6`}>
-      <div className={`flex size-14 shrink-0 items-center justify-center rounded-2xl ${tone}`}>
+    <div className={`${card} flex items-center gap-3 p-4 sm:gap-5 sm:p-6`}>
+      <div className={`flex size-11 shrink-0 items-center justify-center rounded-xl sm:size-14 sm:rounded-2xl ${tone}`}>
         <Icon className="size-6" strokeWidth={2} />
       </div>
       <div>
-        <p className="text-[28px] leading-none font-bold text-slate-900">{value}</p>
-        <p className="mt-1.5 text-[16px] text-slate-500">{label}</p>
+        <p className="text-[24px] leading-none font-bold text-slate-900 sm:text-[28px]">{value}</p>
+        <p className="mt-1.5 text-[14px] text-slate-500 sm:text-[16px]">{label}</p>
       </div>
     </div>
   );
@@ -221,9 +221,9 @@ function StatCard({ value, label, icon: Icon, tone }: StatItem) {
 
 function StatsSkeleton() {
   return (
-    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
       {Array.from({ length: 4 }, (_, i) => (
-        <div key={i} className={`${card} h-[104px] animate-pulse`} />
+        <div key={i} className={`${card} h-[80px] animate-pulse sm:h-[104px]`} />
       ))}
     </div>
   );

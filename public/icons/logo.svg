@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- CoTask logosu: turkuaz zemin üzerinde iç içe iki onay işareti
+       (ekip olarak birlikte tamamlanan iş). Kaynak dosya; PNG ikonlar
+       scripts/generate-icons.mjs ile buradan üretilir. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4cc3a9"/>
+      <stop offset="1" stop-color="#22796c"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="116" fill="url(#shine)"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="54">
+    <path d="M182 218 L250 286 L392 144" stroke="#ffffff" stroke-opacity="0.42"/>
+    <path d="M120 274 L200 354 L362 192" stroke="#ffffff"/>
+  </g>
+</svg>

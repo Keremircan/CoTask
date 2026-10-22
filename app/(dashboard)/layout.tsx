@@ -4,6 +4,8 @@ import { getProjects } from "@/lib/projects";
 import { SidebarShell } from "./_components/sidebar-shell";
 import { SidebarNav, SidebarNavList } from "./_components/sidebar-nav";
 import { UserMenu } from "./_components/user-menu";
+import { MobileTabBar, MobileTabBarList } from "./_components/mobile-tab-bar";
+import { Logo } from "@/components/ui/logo";
 import { SidebarFooter, SidebarFooterSkeleton } from "./_components/sidebar-footer";
 
 export default function DashboardLayout({ children }: LayoutProps<"/">) {
@@ -11,8 +13,11 @@ export default function DashboardLayout({ children }: LayoutProps<"/">) {
     <div className="flex min-h-screen flex-1 bg-[#f2f5f8]">
       <SidebarShell>
         <div className="flex items-center justify-between gap-3 px-6 pt-5 pb-6">
-          <span className="truncate text-[19px] font-semibold tracking-tight text-white">
-            CoTask
+          <span className="flex min-w-0 items-center gap-2.5">
+            <Logo size={30} className="rounded-[8px]" />
+            <span className="truncate text-[19px] font-semibold tracking-tight text-white">
+              CoTask
+            </span>
           </span>
           <Suspense fallback={<div className="size-10 rounded-full bg-white/[0.08]" />}>
             <SidebarUser />
@@ -26,12 +31,17 @@ export default function DashboardLayout({ children }: LayoutProps<"/">) {
         </Suspense>
       </SidebarShell>
 
-      <main className="flex min-w-0 flex-1 flex-col px-5 pt-20 pb-7 sm:px-9 lg:pt-8">
+      {/* Mobilde üstte sabit çubuk, altta sekme çubuğu var: içerik ikisinin arasında kalır */}
+      <main className="flex min-w-0 flex-1 flex-col px-4 pt-[calc(5rem+env(safe-area-inset-top))] pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-9 lg:pt-8 lg:pb-7">
         <div className="flex-1">{children}</div>
-        <footer className="mt-12 text-sm text-slate-400">
+        <footer className="mt-12 hidden text-sm text-slate-400 lg:block">
           © 2026 CoTask · Ekip içi iş takip
         </footer>
       </main>
+
+      <Suspense fallback={<MobileTabBarList pathname={null} />}>
+        <MobileTabBar />
+      </Suspense>
     </div>
   );
 }

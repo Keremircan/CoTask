@@ -8,7 +8,8 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Statik dosyalar, görseller ve favicon hariç tüm yollar
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    // Statik dosyalar, görseller ve PWA dosyaları (manifest, service worker,
+    // çevrimdışı sayfası) hariç tüm yollar: bunlar girişsiz de erişilebilmeli
+    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|sw.js|offline.html|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };

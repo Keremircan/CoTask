@@ -119,7 +119,7 @@ async function General({ searchParams }: Pick<PageProps<"/genel">, "searchParams
   return (
     <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
       <section
-        className={`${card} flex h-[calc(100dvh-14rem)] min-h-[460px] flex-col overflow-hidden`}
+        className={`${card} flex h-[calc(100dvh-19rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] min-h-[420px] lg:h-[calc(100dvh-14rem)] lg:min-h-[460px] flex-col overflow-hidden`}
         aria-label="Ekip sohbeti"
       >
         <div className="border-b border-slate-100 px-5 py-3 sm:px-6">
@@ -279,7 +279,7 @@ function MessageFiles({ files }: { files: GeneralDocument[] }) {
 function GeneralSkeleton() {
   return (
     <div className="grid animate-pulse gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
-      <div className={`${card} h-[calc(100dvh-14rem)] min-h-[460px]`} />
+      <div className={`${card} h-[calc(100dvh-19rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] min-h-[420px] lg:h-[calc(100dvh-14rem)] lg:min-h-[460px]`} />
       <div className="space-y-6">
         <div className={`${card} h-40`} />
         <div className={`${card} h-40`} />

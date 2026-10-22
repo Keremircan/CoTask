@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans, Geist_Mono } from "next/font/google";
+import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -15,6 +16,22 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "CoTask",
   description: "Ekip içi görev takip platformu",
+  applicationName: "CoTask",
+  // iPhone: ana ekrana eklenince tam ekran uygulama gibi açılır
+  appleWebApp: {
+    capable: true,
+    title: "CoTask",
+    statusBarStyle: "black-translucent",
+  },
+  formatDetection: { telephone: false },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  // Çentikli ekranlarda içerik tüm ekrana yayılır; boşluklar CSS'te güvenli alanla ayarlanır
+  viewportFit: "cover",
+  themeColor: "#141414",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -23,7 +40,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="tr"
       className={`${dmSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <ServiceWorkerRegister />
+      </body>
     </html>
   );
 }

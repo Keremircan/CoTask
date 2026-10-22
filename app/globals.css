@@ -67,3 +67,29 @@ body {
   padding: 0;
   overflow: visible;
 }
+
+/* ---------------------------------------------------------------
+   Telefon / uygulama (PWA) ayarları
+   --------------------------------------------------------------- */
+body {
+  /* Dokunmada çıkan gri parlamayı kaldır (uygulama hissi) */
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 1023px) {
+  /* iPhone, 16px'ten küçük yazı kutularına dokununca sayfayı yakınlaştırır */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* Ana ekrandan açılan (standalone) uygulamada metin seçimi sadece içerikte */
+@media (display-mode: standalone) {
+  nav,
+  button {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
