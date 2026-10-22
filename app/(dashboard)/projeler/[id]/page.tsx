@@ -63,7 +63,7 @@ async function Board({ params }: Pick<PageProps<"/projeler/[id]">, "params">) {
       </header>
 
       {/* Mobilde sütunlar yana kaydırılır */}
-      <div className="-mx-5 overflow-x-auto px-5 pb-2 sm:-mx-9 sm:px-9">
+      <div className="-mx-4 overflow-x-auto px-4 pb-2 sm:-mx-9 sm:px-9">
         <div className="grid min-w-[1040px] grid-cols-4 gap-4 xl:min-w-0">
           {BOARD_COLUMNS.map((column) => {
             const items = all.filter((t) => t.status === column.status);

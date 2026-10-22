@@ -164,7 +164,7 @@ async function TaskDetail({
         {task.project ? `${task.project.name} panosuna dön` : "Ana sayfaya dön"}
       </Link>
 
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0 space-y-6">
           {/* Üst bilgi kartı */}
           <section className={`${card} p-6 sm:p-7`}>
@@ -183,7 +183,7 @@ async function TaskDetail({
               </p>
             )}
 
-            <dl className="mt-6 grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2 2xl:grid-cols-4">
+            <dl className="mt-6 grid grid-cols-1 gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2 2xl:grid-cols-4">
               <Meta label="Atayan">
                 <Person name={creatorName} />
               </Meta>
@@ -283,7 +283,7 @@ function Meta({ label, children }: { label: string; children: React.ReactNode })
 
 function DetailSkeleton() {
   return (
-    <div className="grid animate-pulse items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+    <div className="grid grid-cols-1 animate-pulse items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
       <div className="space-y-6">
         <div className={`${card} h-60`} />
         <div className={`${card} h-40`} />

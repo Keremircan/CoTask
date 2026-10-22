@@ -32,7 +32,7 @@ export default function HomePage() {
 
       <section className={`${card} mt-6 p-7`}>
         <h2 className="text-[20px] font-bold text-slate-900">Nasıl çalışır?</h2>
-        <ol className="mt-3 grid gap-3 text-[15.5px] text-slate-600 md:grid-cols-2 xl:grid-cols-4">
+        <ol className="mt-3 grid grid-cols-1 gap-3 text-[15.5px] text-slate-600 md:grid-cols-2 xl:grid-cols-4">
           <Step n={1} title="İş ata">
             Atadığım Görevler’den projesini ve kişisini seçerek işi oluşturun. Görev
             “Onay Bekliyor” olarak başlar.
@@ -120,7 +120,7 @@ async function Inbox() {
   ]);
 
   return (
-    <div className="mt-6 grid gap-6 xl:grid-cols-2">
+    <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
       <InboxCard
         title="Kabulünü bekleyen görevler"
         href="/gorevlerim"
@@ -163,11 +163,14 @@ function InboxCard({
 }) {
   return (
     <section className={`${card} p-6 sm:p-7`}>
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="text-[20px] font-bold text-slate-900">{title}</h2>
+      {/* Dar ekranda başlık ve link sığmazsa link alt satıra iner (üst üste binmez) */}
+      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <h2 className="text-[18px] leading-snug font-bold text-slate-900 sm:text-[20px]">
+          {title}
+        </h2>
         <Link
           href={href}
-          className="inline-flex items-center gap-1 text-sm font-bold text-teal-700 hover:underline"
+          className="inline-flex shrink-0 items-center gap-1 text-sm font-bold whitespace-nowrap text-teal-700 hover:underline"
         >
           {linkLabel} <ArrowRight className="size-4" />
         </Link>
@@ -182,9 +185,9 @@ function InboxCard({
             <li key={t.id}>
               <Link
                 href={`/gorevler/${t.id}`}
-                className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3 transition hover:border-teal-200 hover:bg-teal-50/40"
+                className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-xl border border-slate-100 px-4 py-3 transition hover:border-teal-200 hover:bg-teal-50/40"
               >
-                <span className="min-w-0">
+                <span className="min-w-0 flex-1 basis-44">
                   <span className="block truncate font-bold text-slate-900">{t.title}</span>
                   <span className="block truncate text-sm text-slate-500">
                     {t.project?.name ?? "Projesiz"} · {formatDateTime(t.created_at)}
@@ -207,13 +210,13 @@ type StatItem = { value: number; label: string; icon: LucideIcon; tone: string }
 
 function StatCard({ value, label, icon: Icon, tone }: StatItem) {
   return (
-    <div className={`${card} flex items-center gap-3 p-4 sm:gap-5 sm:p-6`}>
+    <div className={`${card} flex min-w-0 items-center gap-3 p-4 sm:gap-5 sm:p-6`}>
       <div className={`flex size-11 shrink-0 items-center justify-center rounded-xl sm:size-14 sm:rounded-2xl ${tone}`}>
         <Icon className="size-6" strokeWidth={2} />
       </div>
-      <div>
+      <div className="min-w-0">
         <p className="text-[24px] leading-none font-bold text-slate-900 sm:text-[28px]">{value}</p>
-        <p className="mt-1.5 text-[14px] text-slate-500 sm:text-[16px]">{label}</p>
+        <p className="mt-1.5 truncate text-[14px] text-slate-500 sm:text-[16px]">{label}</p>
       </div>
     </div>
   );

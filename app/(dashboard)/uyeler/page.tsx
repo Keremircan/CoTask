@@ -46,7 +46,7 @@ async function Members() {
     (links ?? []).filter((l) => l.role_id === roleId).length;
 
   return (
-    <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+    <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
       <section className={`${card} p-6 sm:p-7`}>
         <div className="mb-5 flex items-baseline justify-between">
           <h2 className="text-[20px] font-bold text-slate-900">Üyeler</h2>
@@ -149,7 +149,7 @@ function RoleBadge({ name, system }: { name: string; system: boolean }) {
 
 function MembersSkeleton() {
   return (
-    <div className="grid animate-pulse gap-6 xl:grid-cols-[1.5fr_1fr]">
+    <div className="grid grid-cols-1 animate-pulse gap-6 xl:grid-cols-[1.5fr_1fr]">
       <div className={`${card} h-72`} />
       <div className={`${card} h-72`} />
     </div>

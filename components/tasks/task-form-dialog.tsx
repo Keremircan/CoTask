@@ -173,7 +173,7 @@ export function TaskFormDialog({
           </p>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
           <div>
             <label htmlFor="task-project" className={fieldLabel}>
               Bağlı olduğu proje
