@@ -9,12 +9,20 @@ const KIND_UI: Record<LinkKind, { icon: typeof Globe; tone: string; name: string
   web: { icon: Globe, tone: "bg-sky-50 text-sky-600", name: "Web" },
 };
 
-export function TaskLinks({ links }: { links: ExtractedLink[] }) {
+export function TaskLinks({
+  links,
+  title = "Referanslar / Linkler",
+  emptyText = "Açıklamada veya yorumlarda paylaşılan linkler burada otomatik toplanır.",
+}: {
+  links: ExtractedLink[];
+  title?: string;
+  emptyText?: string;
+}) {
   return (
     <section className={`${card} p-6`}>
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-[18px] font-bold text-slate-900">
-          Referanslar / Linkler
+          {title}
         </h2>
         <span className="text-sm text-slate-500">{links.length}</span>
       </div>
@@ -22,8 +30,7 @@ export function TaskLinks({ links }: { links: ExtractedLink[] }) {
       {links.length === 0 ? (
         <div className="flex items-start gap-3 rounded-xl border border-dashed border-slate-200 px-4 py-5 text-sm text-slate-500">
           <Link2 className="mt-0.5 size-4 shrink-0 text-slate-400" />
-          Açıklamada veya yorumlarda paylaşılan linkler burada otomatik
-          toplanır.
+          {emptyText}
         </div>
       ) : (
         <ul className="space-y-2">

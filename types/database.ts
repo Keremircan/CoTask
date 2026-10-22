@@ -66,6 +66,25 @@ export type MemberRole = {
   created_at: string;
 };
 
+// "Genel" sayfası: projeden bağımsız ekip sohbeti
+export type GeneralMessage = {
+  id: string;
+  user_id: string | null;
+  content: string;
+  created_at: string;
+};
+
+export type GeneralFile = {
+  id: string;
+  message_id: string;
+  file_url: string; // 'general-files' bucket'ındaki dosya yolu
+  file_name: string;
+  file_type: string | null;
+  file_size: number | null;
+  uploaded_by: string | null;
+  created_at: string;
+};
+
 // ---------------------------------------------------------------------
 // Supabase istemcisine verilen şema tipi (sorgular otomatik tiplenir)
 // ---------------------------------------------------------------------
@@ -142,6 +161,20 @@ export type Database = {
         [
           Rel<"member_roles_profile_id_fkey", "profile_id", "profiles">,
           Rel<"member_roles_role_id_fkey", "role_id", "roles">,
+        ]
+      >;
+      general_messages: Table<
+        GeneralMessage,
+        Partial<GeneralMessage>,
+        [Rel<"general_messages_user_id_fkey", "user_id", "profiles">]
+      >;
+      general_files: Table<
+        GeneralFile,
+        Pick<GeneralFile, "message_id" | "file_url" | "file_name"> &
+          Partial<Omit<GeneralFile, "message_id" | "file_url" | "file_name">>,
+        [
+          Rel<"general_files_message_id_fkey", "message_id", "general_messages">,
+          Rel<"general_files_uploaded_by_fkey", "uploaded_by", "profiles">,
         ]
       >;
     };

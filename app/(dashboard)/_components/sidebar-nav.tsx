@@ -8,6 +8,7 @@ import {
   CircleCheck,
   ClipboardList,
   House,
+  MessagesSquare,
   PanelsTopLeft,
   Plus,
   Users,
@@ -18,6 +19,7 @@ import { ProjectMenu } from "./project-menu";
 
 const MAIN_LINKS = [
   { href: "/", label: "Ana sayfa", icon: House },
+  { href: "/genel", label: "Genel", icon: MessagesSquare },
   { href: "/atadigim-gorevler", label: "Atadığım Görevler", icon: ClipboardList },
   { href: "/gorevlerim", label: "Görevlerim", icon: CircleCheck },
   { href: "/uyeler", label: "Üyeler", icon: Users },

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
-// Değişiklikleri dinlenen tablolar (supabase/realtime.sql ile aynı liste)
+// Değişiklikleri dinlenen tablolar (supabase/realtime.sql + genel.sql)
 const TABLES = [
   "tasks",
   "task_comments",
@@ -13,6 +13,8 @@ const TABLES = [
   "profiles",
   "roles",
   "member_roles",
+  "general_messages",
+  "general_files",
 ] as const;
 
 // Art arda gelen olayları tek yenilemede toplamak için bekleme süresi

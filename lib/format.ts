@@ -31,3 +31,16 @@ export function formatDay(day: string) {
     timeZone: TZ,
   });
 }
+
+export function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString("tr-TR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: TZ,
+  });
+}
+
+// Gün ayırıcıları için Türkiye saatine göre gün anahtarı (YYYY-MM-DD)
+export function dayKey(iso: string) {
+  return new Date(iso).toLocaleDateString("en-CA", { timeZone: TZ });
+}
