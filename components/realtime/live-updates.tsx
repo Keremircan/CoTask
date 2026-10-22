@@ -23,6 +23,15 @@ const REFRESH_DELAY_MS = 250;
 
 type Status = "connecting" | "live" | "offline";
 
+// Satırı değiştiren kişiyi gösteren sütunlar (tablolara göre)
+const ACTOR_COLUMNS = ["user_id", "uploaded_by", "removed_by"] as const;
+
+function isMine(row: unknown, myId: string) {
+  if (!row || typeof row !== "object") return false;
+  const r = row as Record<string, unknown>;
+  return ACTOR_COLUMNS.some((col) => r[col] === myId);
+}
+
 // Ekipten biri veri değiştirdiğinde sayfanın sunucu verisini sessizce yeniler.
 // router.refresh() tam sayfa yenilemesi yapmaz: açık formlar ve yazılan metinler korunur.
 export function LiveUpdates() {
@@ -53,12 +62,19 @@ export function LiveUpdates() {
       await supabase.realtime.setAuth(data.session.access_token);
       if (cancelled) return;
 
+      const myId = data.session.user.id;
       let ch = supabase.channel("cotask-live");
       for (const table of TABLES) {
         ch = ch.on(
           "postgres_changes",
           { event: "*", schema: "public", table },
-          scheduleRefresh,
+          (payload) => {
+            // Kendi yaptığımız ekleme/güncelleme: kendi işlemimiz sayfayı zaten
+            // yeniledi. İkinci bir yenileme hem gereksiz hem de Next.js'in tek
+            // sıra halinde çalışan işlem kuyruğunu yavaşlatır.
+            if (payload.eventType !== "DELETE" && isMine(payload.new, myId)) return;
+            scheduleRefresh();
+          },
         );
       }
       ch.subscribe((state) => {

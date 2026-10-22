@@ -8,7 +8,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { isUuid, PRIORITY_LABELS } from "@/lib/tasks";
 import { dayKey, formatDateTime } from "@/lib/format";
 import { ATTACHMENTS_BUCKET } from "@/lib/attachments";
-import { extractLinks } from "@/lib/links";
+import { extractLinks, withoutRemoved } from "@/lib/links";
 import { getTaskFormOptions } from "@/lib/task-queries";
 import { Markdown } from "@/components/markdown/markdown";
 import { Avatar } from "@/components/ui/avatar";
@@ -104,7 +104,7 @@ async function TaskDetail({
       .order("created_at", { ascending: true }),
     attachmentsWithLinks,
     getTaskFormOptions(),
-    supabase.from("removed_links").select("url").eq("scope", id),
+    supabase.from("removed_links").select("url, created_at").eq("scope", id),
   ]);
 
   const task = taskRes.data;
@@ -125,17 +125,25 @@ async function TaskDetail({
     canDelete: user.isAdmin || a.uploaded_by === user.id,
   }));
 
-  // Linkler tüm yorumlardan toplanır (gün seçiciden etkilenmez);
-  // listeden kaldırılanlar gösterilmez
-  const removed = new Set((removedRes.data ?? []).map((r) => r.url));
-  const links = extractLinks([
-    { text: task.description, source: "Açıklama", authorId: task.created_by },
-    ...comments.map((c) => ({
-      text: c.content,
-      source: `Yorum · ${c.author?.full_name ?? "Eski üye"}`,
-      authorId: c.user_id,
-    })),
-  ]).filter((l) => !removed.has(l.url));
+  // Linkler tüm yorumlardan toplanır (gün seçiciden etkilenmez).
+  // Listeden kaldırılan link, kaldırıldıktan sonra yeniden paylaşılırsa geri gelir.
+  const links = withoutRemoved(
+    extractLinks([
+      {
+        text: task.description,
+        source: "Açıklama",
+        authorId: task.created_by,
+        at: task.created_at,
+      },
+      ...comments.map((c) => ({
+        text: c.content,
+        source: `Yorum · ${c.author?.full_name ?? "Eski üye"}`,
+        authorId: c.user_id,
+        at: c.created_at,
+      })),
+    ]),
+    removedRes.data ?? [],
+  );
   const removableUrls = links
     .filter((l) => user.isAdmin || l.authorIds.includes(user.id))
     .map((l) => l.url);

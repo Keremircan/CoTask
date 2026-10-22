@@ -38,7 +38,14 @@ export function ConfirmDeleteButton({
       if (result.error) {
         if (row) row.style.display = "";
         setError(result.error);
+        return;
       }
+      // Başarılıysa satır sunucudan gelen güncellemeyle zaten kaldırılır.
+      // Gizlemeyi kısa süre sonra geri al: aynı öğe (ör. yeniden paylaşılan
+      // bir link) listeye dönerse React aynı satırı kullanabilir ve gizli kalmasın.
+      setTimeout(() => {
+        if (row) row.style.display = "";
+      }, 1500);
     });
     return { error: null };
   }

@@ -1,6 +1,6 @@
 -- =====================================================================
 -- CoTask — YENİ PROJE İÇİN TAM KURULUM (tek dosya)
--- Sırayla şunları içerir: schema.sql + storage.sql + revize.sql + realtime.sql + genel.sql + silme.sql
+-- Sırayla şunları içerir: schema.sql + storage.sql + revize.sql + realtime.sql + genel.sql + silme.sql + linkler-duzeltme.sql
 --
 -- ÖNEMLİ: Bu dosyayı, 3 kullanıcıyı Authentication > Users'tan açtıktan
 -- SONRA çalıştırın; böylece profiller ve Admin ataması otomatik oluşur.
@@ -830,3 +830,27 @@ where policyname in (
   'General messages delete', 'General files delete', 'Removed links insert'
 )
 order by tablename, policyname;
+
+
+-- #####################################################################
+-- ##### linkler-duzeltme.sql
+-- #####################################################################
+
+-- =====================================================================
+-- CoTask — Kaldırılan link yeniden paylaşılınca listeye geri dönsün
+-- Kaldırma artık sadece o ana kadarki paylaşımları kapsar (zamana göre).
+-- Aynı link tekrar kaldırılırsa kaldırılma zamanı güncellenebilsin diye
+-- güncelleme izni eklenir. silme.sql'den SONRA çalıştırın. Tekrar çalıştırılabilir.
+-- =====================================================================
+
+grant update on public.removed_links to authenticated;
+
+drop policy if exists "Removed links update" on public.removed_links;
+create policy "Removed links update" on public.removed_links
+  for update to authenticated
+  using (true)
+  with check (removed_by = (select auth.uid()));
+
+-- Kontrol: 1 satır görmelisiniz
+select policyname from pg_policies
+where tablename = 'removed_links' and policyname = 'Removed links update';

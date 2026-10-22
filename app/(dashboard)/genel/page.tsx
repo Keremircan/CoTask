@@ -4,7 +4,7 @@ import { MessagesSquare } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { getCurrentUser } from "@/lib/auth";
 import { dayKey, formatDate, formatDateTime, formatTime } from "@/lib/format";
-import { extractLinks, GENERAL_LINK_SCOPE } from "@/lib/links";
+import { extractLinks, GENERAL_LINK_SCOPE, withoutRemoved } from "@/lib/links";
 import { kindOfMime } from "@/lib/general-files";
 import { Markdown } from "@/components/markdown/markdown";
 import { Avatar } from "@/components/ui/avatar";
@@ -66,7 +66,7 @@ async function General({ searchParams }: Pick<PageProps<"/genel">, "searchParams
         "id, message_id, file_name, file_type, file_size, created_at, uploaded_by, uploader:profiles!general_files_uploaded_by_fkey(full_name)",
       )
       .order("created_at", { ascending: false }),
-    supabase.from("removed_links").select("url").eq("scope", GENERAL_LINK_SCOPE),
+    supabase.from("removed_links").select("url, created_at").eq("scope", GENERAL_LINK_SCOPE),
   ]);
 
   const setupMissing = Boolean(messagesRes.error || filesRes.error);
@@ -98,16 +98,19 @@ async function General({ searchParams }: Pick<PageProps<"/genel">, "searchParams
     filesByMessage.set(f.message_id, list);
   });
 
-  // LİNKLER tüm sohbetten toplanır (gün seçiciden etkilenmez), en yenisi üstte;
-  // listeden kaldırılanlar gösterilmez
-  const removed = new Set((removedRes.data ?? []).map((r) => r.url));
-  const links = extractLinks(
-    [...history].reverse().map((m) => ({
-      text: m.content,
-      source: `${m.author?.full_name ?? "Eski üye"} · ${formatDate(m.created_at)}`,
-      authorId: m.user_id,
-    })),
-  ).filter((l) => !removed.has(l.url));
+  // LİNKLER tüm sohbetten toplanır (gün seçiciden etkilenmez), en yenisi üstte.
+  // Listeden kaldırılan link, kaldırıldıktan sonra yeniden paylaşılırsa geri gelir.
+  const links = withoutRemoved(
+    extractLinks(
+      [...history].reverse().map((m) => ({
+        text: m.content,
+        source: `${m.author?.full_name ?? "Eski üye"} · ${formatDate(m.created_at)}`,
+        authorId: m.user_id,
+        at: m.created_at,
+      })),
+    ),
+    removedRes.data ?? [],
+  );
   const removableUrls = links
     .filter((l) => user.isAdmin || l.authorIds.includes(user.id))
     .map((l) => l.url);

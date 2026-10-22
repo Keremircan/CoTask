@@ -12,6 +12,7 @@ export type ExtractedLink = {
   kind: LinkKind;
   source: string; // "Açıklama" ya da "Yorum · Ayşe"
   authorIds: string[]; // linki paylaşan(lar): listeden kaldırma yetkisi için
+  lastSharedAt: string | null; // en son paylaşıldığı an (ISO); bilinmiyorsa null
 };
 
 // http(s) ile başlayan, boşluk/tırnak/açılı parantez içermeyen adresler
@@ -20,11 +21,16 @@ const URL_RE = /\bhttps?:\/\/[^\s<>"'`]+/gi;
 const TRAILING_RE = /[)\].,;:!?*_]+$/;
 
 export function extractLinks(
-  sources: { text: string | null; source: string; authorId?: string | null }[],
+  sources: {
+    text: string | null;
+    source: string;
+    authorId?: string | null;
+    at?: string | null; // mesajın/yorumun yazıldığı an
+  }[],
 ): ExtractedLink[] {
   const seen = new Map<string, ExtractedLink>();
 
-  for (const { text, source, authorId } of sources) {
+  for (const { text, source, authorId, at = null } of sources) {
     if (!text) continue;
     for (const match of text.matchAll(URL_RE)) {
       const raw = match[0].replace(TRAILING_RE, "");
@@ -41,9 +47,16 @@ export function extractLinks(
       if (existing) {
         // Aynı linki birden çok kişi paylaşmışsa hepsi kaldırabilir
         if (authorId && !existing.authorIds.includes(authorId)) existing.authorIds.push(authorId);
+        if (at && (!existing.lastSharedAt || at > existing.lastSharedAt)) existing.lastSharedAt = at;
         continue;
       }
-      seen.set(href, { url: href, source, authorIds: authorId ? [authorId] : [], ...describe(url) });
+      seen.set(href, {
+        url: href,
+        source,
+        authorIds: authorId ? [authorId] : [],
+        lastSharedAt: at,
+        ...describe(url),
+      });
     }
   }
 
@@ -92,4 +105,19 @@ function decodeSafe(value: string) {
 
 function truncate(value: string, max: number) {
   return value.length > max ? `${value.slice(0, max - 1)}…` : value;
+}
+
+// Listeden kaldırılan linkleri süzer. Kaldırma, sadece o ana kadarki
+// paylaşımları kapsar: link kaldırıldıktan SONRA yeniden paylaşılırsa
+// listede tekrar görünür.
+export function withoutRemoved(
+  links: ExtractedLink[],
+  removed: { url: string; created_at: string }[],
+): ExtractedLink[] {
+  const removedAt = new Map(removed.map((r) => [r.url, r.created_at]));
+  return links.filter((l) => {
+    const at = removedAt.get(l.url);
+    if (!at) return true;
+    return l.lastSharedAt !== null && new Date(l.lastSharedAt) > new Date(at);
+  });
 }
