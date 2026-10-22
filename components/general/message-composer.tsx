@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { CircleAlert, LoaderCircle, Paperclip, SendHorizontal, X } from "lucide-react";
 import {
   discardGeneralUploads,
@@ -20,7 +21,15 @@ import { Avatar } from "@/components/ui/avatar";
 
 type Sending = { text: string; files: string[]; progress: string | null };
 
-export function MessageComposer({ authorName }: { authorName: string }) {
+export function MessageComposer({
+  authorName,
+  viewingPastDay = false,
+}: {
+  authorName: string;
+  viewingPastDay?: boolean; // geçmiş bir gün süzülüyse yeni mesaj görünmez
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [content, setContent] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [sending, setSending] = useState<Sending | null>(null);
@@ -104,6 +113,8 @@ export function MessageComposer({ authorName }: { authorName: string }) {
 
       setErrors(failed);
       setSending(null);
+      // Yeni mesaj bugüne düşer: geçmiş bir gündeysek süzgeci kaldır ki görünsün
+      if (viewingPastDay) router.replace(pathname, { scroll: false });
       textRef.current?.focus();
     });
   }

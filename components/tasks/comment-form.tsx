@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { CircleAlert, LoaderCircle, MessageSquare } from "lucide-react";
 import { addComment } from "@/actions/task-details";
 import { Avatar } from "@/components/ui/avatar";
@@ -9,10 +10,14 @@ import { field, primaryButton } from "@/components/ui/styles";
 export function CommentForm({
   taskId,
   authorName,
+  viewingPastDay = false,
 }: {
   taskId: string;
   authorName: string;
+  viewingPastDay?: boolean; // geçmiş bir gün süzülüyse yeni yorum görünmez
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [content, setContent] = useState("");
   // Sunucu cevabını beklemeden gösterilen yorum (iyimser güncelleme)
   const [sending, setSending] = useState<string | null>(null);
@@ -30,6 +35,9 @@ export function CommentForm({
       if (result.error) {
         setError(result.error);
         setContent(text); // yazılanı kaybetme
+      } else if (viewingPastDay) {
+        // Yeni yorum bugüne düşer: süzgeci kaldır ki görünsün
+        router.replace(`${pathname}#yorumlar`, { scroll: false });
       }
       // Başarılıysa sunucudan gelen asıl yorum aynı anda listeye düşer
       setSending(null);

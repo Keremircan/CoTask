@@ -6,7 +6,7 @@ import { ArrowLeft, CalendarDays, FolderKanban, Hand } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { getCurrentUser } from "@/lib/auth";
 import { isUuid, PRIORITY_LABELS } from "@/lib/tasks";
-import { formatDateTime } from "@/lib/format";
+import { dayKey, formatDateTime } from "@/lib/format";
 import { ATTACHMENTS_BUCKET } from "@/lib/attachments";
 import { extractLinks } from "@/lib/links";
 import { getTaskFormOptions } from "@/lib/task-queries";
@@ -27,18 +27,24 @@ export const metadata: Metadata = { title: "Görev detayı · CoTask" };
 // İmzalı dosya linklerinin geçerlilik süresi
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
 
-export default function TaskDetailPage({ params }: PageProps<"/gorevler/[id]">) {
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+export default function TaskDetailPage({ params, searchParams }: PageProps<"/gorevler/[id]">) {
   return (
-    // params istek anında okunur; Suspense içinde kalmalı
+    // params/searchParams istek anında okunur; Suspense içinde kalmalı
     <Suspense fallback={<DetailSkeleton />}>
-      <TaskDetail params={params} />
+      <TaskDetail params={params} searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function TaskDetail({ params }: Pick<PageProps<"/gorevler/[id]">, "params">) {
-  const { id } = await params;
+async function TaskDetail({
+  params,
+  searchParams,
+}: Pick<PageProps<"/gorevler/[id]">, "params" | "searchParams">) {
+  const [{ id }, { gun }] = await Promise.all([params, searchParams]);
   if (!isUuid(id)) notFound();
+  const selectedDay = typeof gun === "string" && DAY_RE.test(gun) ? gun : null;
 
   const supabase = await createClient();
 
@@ -47,7 +53,7 @@ async function TaskDetail({ params }: Pick<PageProps<"/gorevler/[id]">, "params"
   const attachmentsWithLinks = supabase
     .from("task_attachments")
     .select(
-      "id, file_url, file_name, file_type, created_at, uploader:profiles!task_attachments_uploaded_by_fkey(full_name)",
+      "id, file_url, file_name, file_type, created_at, uploaded_by, uploader:profiles!task_attachments_uploaded_by_fkey(full_name)",
     )
     .eq("task_id", id)
     .order("created_at", { ascending: false })
@@ -65,19 +71,18 @@ async function TaskDetail({ params }: Pick<PageProps<"/gorevler/[id]">, "params"
           if (item.path && item.signedUrl) signed.set(item.path, item.signedUrl);
         });
       }
-      return list.map(
-        (a): TaskAttachment => ({
-          id: a.id,
-          file_name: a.file_name,
-          file_type: a.file_type,
-          created_at: a.created_at,
-          uploader: a.uploader,
-          signedUrl: signed.get(a.file_url) ?? null,
-        }),
-      );
+      return list.map((a) => ({
+        id: a.id,
+        file_name: a.file_name,
+        file_type: a.file_type,
+        created_at: a.created_at,
+        uploaded_by: a.uploaded_by,
+        uploader: a.uploader,
+        signedUrl: signed.get(a.file_url) ?? null,
+      }));
     });
 
-  const [user, taskRes, commentsRes, attachments, formOptions] = await Promise.all([
+  const [user, taskRes, commentsRes, rawAttachments, formOptions, removedRes] = await Promise.all([
     getCurrentUser(),
     supabase
       .from("tasks")
@@ -93,12 +98,13 @@ async function TaskDetail({ params }: Pick<PageProps<"/gorevler/[id]">, "params"
     supabase
       .from("task_comments")
       .select(
-        "id, content, created_at, author:profiles!task_comments_user_id_fkey(full_name)",
+        "id, user_id, content, created_at, author:profiles!task_comments_user_id_fkey(full_name)",
       )
       .eq("task_id", id)
       .order("created_at", { ascending: true }),
     attachmentsWithLinks,
     getTaskFormOptions(),
+    supabase.from("removed_links").select("url").eq("scope", id),
   ]);
 
   const task = taskRes.data;
@@ -106,13 +112,33 @@ async function TaskDetail({ params }: Pick<PageProps<"/gorevler/[id]">, "params"
 
   const comments = commentsRes.data ?? [];
 
+  // Gün seçici: mesaj olan günler ve seçilen günün yorumları
+  const today = dayKey(new Date().toISOString());
+  const days = [...new Set(comments.map((c) => dayKey(c.created_at)))];
+  const shownComments = selectedDay
+    ? comments.filter((c) => dayKey(c.created_at) === selectedDay)
+    : comments;
+
+  // Silme yetkisi: yükleyen kişi ya da Admin
+  const attachments: TaskAttachment[] = rawAttachments.map((a) => ({
+    ...a,
+    canDelete: user.isAdmin || a.uploaded_by === user.id,
+  }));
+
+  // Linkler tüm yorumlardan toplanır (gün seçiciden etkilenmez);
+  // listeden kaldırılanlar gösterilmez
+  const removed = new Set((removedRes.data ?? []).map((r) => r.url));
   const links = extractLinks([
-    { text: task.description, source: "Açıklama" },
+    { text: task.description, source: "Açıklama", authorId: task.created_by },
     ...comments.map((c) => ({
       text: c.content,
       source: `Yorum · ${c.author?.full_name ?? "Eski üye"}`,
+      authorId: c.user_id,
     })),
-  ]);
+  ]).filter((l) => !removed.has(l.url));
+  const removableUrls = links
+    .filter((l) => user.isAdmin || l.authorIds.includes(user.id))
+    .map((l) => l.url);
 
   const creatorName = task.creator?.full_name ?? "Eski üye";
   const isOpen = task.assigned_to === null;
@@ -209,15 +235,21 @@ async function TaskDetail({ params }: Pick<PageProps<"/gorevler/[id]">, "params"
           <div id="yorumlar" className="scroll-mt-20">
             <TaskComments
               taskId={task.id}
-              comments={comments}
+              comments={shownComments}
+              totalCount={comments.length}
+              currentUserId={user.id}
               currentUserName={user.name}
+              isAdmin={user.isAdmin}
+              selectedDay={selectedDay}
+              days={days}
+              today={today}
             />
           </div>
         </div>
 
         <aside className="space-y-6 xl:sticky xl:top-8">
           <TaskAttachments taskId={task.id} attachments={attachments} />
-          <TaskLinks links={links} />
+          <TaskLinks links={links} scope={task.id} removableUrls={removableUrls} />
         </aside>
       </div>
     </>

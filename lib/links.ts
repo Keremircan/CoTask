@@ -1,5 +1,8 @@
 // Görev açıklaması ve yorumlardaki linkleri toplar
 
+// Listeden kaldırılan linklerin kapsamı: "genel" (Genel sayfası) ya da görevin id'si
+export const GENERAL_LINK_SCOPE = "genel";
+
 export type LinkKind = "github" | "figma" | "docs" | "web";
 
 export type ExtractedLink = {
@@ -8,6 +11,7 @@ export type ExtractedLink = {
   label: string;
   kind: LinkKind;
   source: string; // "Açıklama" ya da "Yorum · Ayşe"
+  authorIds: string[]; // linki paylaşan(lar): listeden kaldırma yetkisi için
 };
 
 // http(s) ile başlayan, boşluk/tırnak/açılı parantez içermeyen adresler
@@ -16,11 +20,11 @@ const URL_RE = /\bhttps?:\/\/[^\s<>"'`]+/gi;
 const TRAILING_RE = /[)\].,;:!?*_]+$/;
 
 export function extractLinks(
-  sources: { text: string | null; source: string }[],
+  sources: { text: string | null; source: string; authorId?: string | null }[],
 ): ExtractedLink[] {
   const seen = new Map<string, ExtractedLink>();
 
-  for (const { text, source } of sources) {
+  for (const { text, source, authorId } of sources) {
     if (!text) continue;
     for (const match of text.matchAll(URL_RE)) {
       const raw = match[0].replace(TRAILING_RE, "");
@@ -33,8 +37,13 @@ export function extractLinks(
       if (url.protocol !== "http:" && url.protocol !== "https:") continue;
 
       const href = url.toString();
-      if (seen.has(href)) continue;
-      seen.set(href, { url: href, source, ...describe(url) });
+      const existing = seen.get(href);
+      if (existing) {
+        // Aynı linki birden çok kişi paylaşmışsa hepsi kaldırabilir
+        if (authorId && !existing.authorIds.includes(authorId)) existing.authorIds.push(authorId);
+        continue;
+      }
+      seen.set(href, { url: href, source, authorIds: authorId ? [authorId] : [], ...describe(url) });
     }
   }
 

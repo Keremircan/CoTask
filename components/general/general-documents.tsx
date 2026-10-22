@@ -10,6 +10,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { card } from "@/components/ui/styles";
+import { ConfirmDeleteButton } from "@/components/ui/confirm-delete-button";
+import { deleteGeneralFile } from "@/actions/general";
 import { formatBytes } from "@/lib/attachments";
 import { formatDate } from "@/lib/format";
 import { kindOfMime, type FileKind } from "@/lib/general-files";
@@ -21,6 +23,7 @@ export type GeneralDocument = {
   file_size: number | null;
   created_at: string;
   uploaderName: string;
+  canDelete: boolean; // yükleyen kişi ya da Admin
 };
 
 export const KIND_UI: Record<FileKind, { icon: LucideIcon; tone: string }> = {
@@ -93,6 +96,16 @@ export function GeneralDocuments({ documents }: { documents: GeneralDocument[] }
                     >
                       <Download className="size-4" />
                     </a>
+                    {doc.canDelete && (
+                      <ConfirmDeleteButton
+                        action={deleteGeneralFile}
+                        args={[doc.id]}
+                        label={`${doc.file_name} sil`}
+                        title="Dokümanı sil"
+                        message={`"${doc.file_name}" herkes için kalıcı olarak silinecek ve paylaşıldığı mesajdan da kalkacak.`}
+                        confirmLabel="Dokümanı sil"
+                      />
+                    )}
                   </div>
               </li>
             );

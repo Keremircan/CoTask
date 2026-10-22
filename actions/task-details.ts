@@ -110,3 +110,43 @@ export async function uploadAttachment(
   revalidateTaskPages();
   return { error: null };
 }
+
+// Yorumu sahibi ya da Admin siler (yetki RLS ile kontrol edilir)
+export async function deleteComment(commentId: string): Promise<ActionResult> {
+  await getUserId();
+  if (!isUuid(commentId)) return { error: "Geçersiz yorum." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("task_comments")
+    .delete()
+    .eq("id", commentId)
+    .select("id");
+
+  if (error) return { error: "Yorum silinemedi." };
+  if (!data.length) return { error: "Sadece kendi yorumunuzu silebilirsiniz." };
+
+  revalidateTaskPages();
+  return { error: null };
+}
+
+// Eki yükleyen ya da Admin siler; dosya depodan da kaldırılır
+export async function deleteTaskAttachment(attachmentId: string): Promise<ActionResult> {
+  await getUserId();
+  if (!isUuid(attachmentId)) return { error: "Geçersiz dosya." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("task_attachments")
+    .delete()
+    .eq("id", attachmentId)
+    .select("file_url");
+
+  if (error) return { error: "Dosya silinemedi." };
+  if (!data.length) return { error: "Sadece kendi yüklediğiniz dosyayı silebilirsiniz." };
+
+  await supabase.storage.from(ATTACHMENTS_BUCKET).remove(data.map((d) => d.file_url));
+
+  revalidateTaskPages();
+  return { error: null };
+}

@@ -85,6 +85,15 @@ export type GeneralFile = {
   created_at: string;
 };
 
+// LİNKLER listesinden kaldırılan linkler (scope: "genel" ya da görev id'si)
+export type RemovedLink = {
+  id: string;
+  scope: string;
+  url: string;
+  removed_by: string | null;
+  created_at: string;
+};
+
 // ---------------------------------------------------------------------
 // Supabase istemcisine verilen şema tipi (sorgular otomatik tiplenir)
 // ---------------------------------------------------------------------
@@ -176,6 +185,11 @@ export type Database = {
           Rel<"general_files_message_id_fkey", "message_id", "general_messages">,
           Rel<"general_files_uploaded_by_fkey", "uploaded_by", "profiles">,
         ]
+      >;
+      removed_links: Table<
+        RemovedLink,
+        Pick<RemovedLink, "scope" | "url"> & Partial<Omit<RemovedLink, "scope" | "url">>,
+        [Rel<"removed_links_removed_by_fkey", "removed_by", "profiles">]
       >;
     };
     Views: { [_ in never]: never };

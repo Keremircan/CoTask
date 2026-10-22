@@ -15,6 +15,7 @@ const TABLES = [
   "member_roles",
   "general_messages",
   "general_files",
+  "removed_links",
 ] as const;
 
 // Art arda gelen olayları tek yenilemede toplamak için bekleme süresi

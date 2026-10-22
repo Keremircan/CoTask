@@ -2,11 +2,15 @@ import { MessagesSquare } from "lucide-react";
 import { Markdown } from "@/components/markdown/markdown";
 import { Avatar } from "@/components/ui/avatar";
 import { card } from "@/components/ui/styles";
-import { formatDateTime } from "@/lib/format";
+import { ConfirmDeleteButton } from "@/components/ui/confirm-delete-button";
+import { DayFilter } from "@/components/conversation/day-filter";
+import { deleteComment } from "@/actions/task-details";
+import { formatDate, formatDateTime } from "@/lib/format";
 import { CommentForm } from "./comment-form";
 
 export type TaskComment = {
   id: string;
+  user_id: string | null;
   content: string;
   created_at: string;
   author: { full_name: string | null } | null;
@@ -15,37 +19,60 @@ export type TaskComment = {
 export function TaskComments({
   taskId,
   comments,
+  totalCount,
+  currentUserId,
   currentUserName,
+  isAdmin,
+  selectedDay,
+  days,
+  today,
 }: {
   taskId: string;
-  comments: TaskComment[];
+  comments: TaskComment[]; // seçilen güne göre süzülmüş
+  totalCount: number;
+  currentUserId: string;
   currentUserName: string;
+  isAdmin: boolean;
+  selectedDay: string | null;
+  days: string[];
+  today: string;
 }) {
   return (
     <section className={`${card} p-6 sm:p-7`}>
-      <div className="mb-5 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between">
         <h2 className="text-[20px] font-bold text-slate-900">
           Yorumlar ve tartışma
         </h2>
-        <span className="text-[15px] text-slate-500">
-          {comments.length} yorum
-        </span>
+      </div>
+
+      <div className="mb-5 border-b border-slate-100 pb-4">
+        <DayFilter
+          selected={selectedDay}
+          days={days}
+          today={today}
+          anchor="#yorumlar"
+          total={totalCount}
+          shown={comments.length}
+        />
       </div>
 
       {comments.length === 0 ? (
         <div className="mb-6 flex items-center gap-3 rounded-xl border border-dashed border-slate-200 px-5 py-6 text-slate-500">
           <MessagesSquare className="size-5 shrink-0 text-slate-400" />
-          Henüz yorum yok. İlk yorumu sen yaz.
+          {selectedDay
+            ? `${formatDate(`${selectedDay}T12:00:00Z`)} tarihinde yorum yok.`
+            : "Henüz yorum yok. İlk yorumu sen yaz."}
         </div>
       ) : (
         <ol className="mb-6 space-y-5">
           {comments.map((comment) => {
             const name = comment.author?.full_name || "Eski üye";
+            const canDelete = isAdmin || comment.user_id === currentUserId;
             return (
-              <li key={comment.id} className="flex gap-3.5">
+              <li key={comment.id} className="group flex gap-3.5">
                 <Avatar name={name} />
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-baseline gap-x-2.5">
+                  <div className="flex flex-wrap items-center gap-x-2.5">
                     <span className="font-bold text-slate-900">{name}</span>
                     <time
                       dateTime={comment.created_at}
@@ -53,6 +80,19 @@ export function TaskComments({
                     >
                       {formatDateTime(comment.created_at)}
                     </time>
+                    {canDelete && (
+                      <span className="ml-auto">
+                        <ConfirmDeleteButton
+                          action={deleteComment}
+                          args={[comment.id]}
+                          label="Yorumu sil"
+                          title="Yorumu sil"
+                          message="Bu yorum herkes için kalıcı olarak silinecek."
+                          confirmLabel="Yorumu sil"
+                          reveal
+                        />
+                      </span>
+                    )}
                   </div>
                   <div className="mt-1.5 rounded-2xl rounded-tl-md bg-slate-50 px-4 py-3">
                     <Markdown>{comment.content}</Markdown>
@@ -64,7 +104,11 @@ export function TaskComments({
         </ol>
       )}
 
-      <CommentForm taskId={taskId} authorName={currentUserName} />
+      <CommentForm
+        taskId={taskId}
+        authorName={currentUserName}
+        viewingPastDay={selectedDay !== null && selectedDay !== today}
+      />
     </section>
   );
 }

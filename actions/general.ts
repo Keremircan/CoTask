@@ -110,9 +110,9 @@ async function removeUploads(
   if (paths.length) await supabase.storage.from(GENERAL_BUCKET).remove(paths);
 }
 
-// Kişi sadece kendi mesajını (ve ekli dosyalarını) silebilir
+// Mesajı sahibi ya da Admin siler (yetki RLS ile); ekli dosyalar da kalkar
 export async function deleteGeneralMessage(messageId: string): Promise<GeneralResult> {
-  const userId = await getUserId();
+  await getUserId();
   if (!isUuid(messageId)) return { error: "Geçersiz mesaj." };
 
   const supabase = await createClient();
@@ -125,14 +125,45 @@ export async function deleteGeneralMessage(messageId: string): Promise<GeneralRe
     .from("general_messages")
     .delete()
     .eq("id", messageId)
-    .eq("user_id", userId)
     .select("id");
 
   if (error) return { error: "Mesaj silinemedi." };
   if (!data.length) return { error: "Sadece kendi mesajınızı silebilirsiniz." };
 
-  if (files?.length) {
-    await supabase.storage.from(GENERAL_BUCKET).remove(files.map((f) => f.file_url));
+  if (files?.length) await removeUploads(supabase, files.map((f) => f.file_url));
+
+  revalidateGeneral();
+  return { error: null };
+}
+
+// Dokümanı yükleyen ya da Admin siler. Mesaj sadece bu dosyadan ibaretse
+// (metni yok, başka dosyası yok) boş kalmasın diye mesaj da silinir.
+export async function deleteGeneralFile(fileId: string): Promise<GeneralResult> {
+  await getUserId();
+  if (!isUuid(fileId)) return { error: "Geçersiz dosya." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("general_files")
+    .delete()
+    .eq("id", fileId)
+    .select("file_url, message_id");
+
+  if (error) return { error: "Dosya silinemedi." };
+  if (!data.length) return { error: "Sadece kendi yüklediğiniz dosyayı silebilirsiniz." };
+
+  const { file_url, message_id } = data[0];
+  await removeUploads(supabase, [file_url]);
+
+  const [{ data: message }, { count }] = await Promise.all([
+    supabase.from("general_messages").select("content").eq("id", message_id).maybeSingle(),
+    supabase
+      .from("general_files")
+      .select("*", { count: "exact", head: true })
+      .eq("message_id", message_id),
+  ]);
+  if (message && !message.content.trim() && !count) {
+    await supabase.from("general_messages").delete().eq("id", message_id);
   }
 
   revalidateGeneral();

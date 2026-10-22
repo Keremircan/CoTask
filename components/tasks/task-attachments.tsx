@@ -1,5 +1,7 @@
 import { Download, ExternalLink, File, FileImage, FileText } from "lucide-react";
 import { card } from "@/components/ui/styles";
+import { ConfirmDeleteButton } from "@/components/ui/confirm-delete-button";
+import { deleteTaskAttachment } from "@/actions/task-details";
 import { isImageType } from "@/lib/attachments";
 import { formatDate } from "@/lib/format";
 import { AttachmentUpload } from "./attachment-upload";
@@ -12,6 +14,7 @@ export type TaskAttachment = {
   uploader: { full_name: string | null } | null;
   // Özel bucket için üretilmiş süreli link (üretilemezse null)
   signedUrl: string | null;
+  canDelete: boolean; // yükleyen kişi ya da Admin
 };
 
 export function TaskAttachments({
@@ -89,6 +92,16 @@ function AttachmentRow({ attachment: a }: { attachment: TaskAttachment }) {
             {a.uploader?.full_name ?? "Eski üye"} · {formatDate(a.created_at)}
           </p>
         </div>
+        {a.canDelete && (
+          <ConfirmDeleteButton
+            action={deleteTaskAttachment}
+            args={[a.id]}
+            label="Dosyayı sil"
+            title="Dosyayı sil"
+            message={`"${a.file_name}" herkes için kalıcı olarak silinecek.`}
+            confirmLabel="Dosyayı sil"
+          />
+        )}
       </div>
       {a.signedUrl && downloadUrl ? (
         <div className="mt-3 flex gap-2">

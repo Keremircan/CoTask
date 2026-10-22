@@ -4,7 +4,7 @@ import { MessagesSquare } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { getCurrentUser } from "@/lib/auth";
 import { dayKey, formatDate, formatDateTime, formatTime } from "@/lib/format";
-import { extractLinks } from "@/lib/links";
+import { extractLinks, GENERAL_LINK_SCOPE } from "@/lib/links";
 import { kindOfMime } from "@/lib/general-files";
 import { Markdown } from "@/components/markdown/markdown";
 import { Avatar } from "@/components/ui/avatar";
@@ -12,7 +12,9 @@ import { card } from "@/components/ui/styles";
 import { TaskLinks } from "@/components/tasks/task-links";
 import { ChatScroller } from "@/components/general/chat-scroller";
 import { MessageComposer } from "@/components/general/message-composer";
-import { DeleteMessageButton } from "@/components/general/delete-message-button";
+import { ConfirmDeleteButton } from "@/components/ui/confirm-delete-button";
+import { DayFilter } from "@/components/conversation/day-filter";
+import { deleteGeneralMessage } from "@/actions/general";
 import {
   downloadUrl,
   GeneralDocuments,
@@ -24,12 +26,15 @@ import { PageHeader } from "../_components/page-header";
 
 export const metadata: Metadata = { title: "Genel · CoTask" };
 
-// Sohbette gösterilen son mesaj sayısı
+// "Tümü" görünümünde gösterilen son mesaj sayısı
 const MESSAGE_LIMIT = 300;
+// Gün listesi ve LİNKLER için okunan en fazla mesaj
+const HISTORY_LIMIT = 3000;
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 // Aynı kişinin bu süre içindeki ardışık mesajları tek blokta gösterilir
 const GROUP_WINDOW_MS = 5 * 60 * 1000;
 
-export default function GeneralPage() {
+export default function GeneralPage({ searchParams }: PageProps<"/genel">) {
   return (
     <>
       <PageHeader
@@ -37,34 +42,45 @@ export default function GeneralPage() {
         description="Projeden bağımsız ekip sohbeti; paylaşılan linkler ve dokümanlar sağda toplanır."
       />
       <Suspense fallback={<GeneralSkeleton />}>
-        <General />
+        <General searchParams={searchParams} />
       </Suspense>
     </>
   );
 }
 
-async function General() {
+async function General({ searchParams }: Pick<PageProps<"/genel">, "searchParams">) {
   const supabase = await createClient();
 
-  // Kullanıcı, mesajlar ve tüm dokümanlar aynı turda, paralel çekilir
-  const [user, messagesRes, filesRes] = await Promise.all([
+  // Kullanıcı, mesajlar, dokümanlar ve kaldırılan linkler aynı turda, paralel
+  const [user, { gun }, messagesRes, filesRes, removedRes] = await Promise.all([
     getCurrentUser(),
+    searchParams,
     supabase
       .from("general_messages")
       .select("id, user_id, content, created_at, author:profiles!general_messages_user_id_fkey(full_name)")
       .order("created_at", { ascending: false })
-      .limit(MESSAGE_LIMIT),
+      .limit(HISTORY_LIMIT),
     supabase
       .from("general_files")
       .select(
-        "id, message_id, file_name, file_type, file_size, created_at, uploader:profiles!general_files_uploaded_by_fkey(full_name)",
+        "id, message_id, file_name, file_type, file_size, created_at, uploaded_by, uploader:profiles!general_files_uploaded_by_fkey(full_name)",
       )
       .order("created_at", { ascending: false }),
+    supabase.from("removed_links").select("url").eq("scope", GENERAL_LINK_SCOPE),
   ]);
 
   const setupMissing = Boolean(messagesRes.error || filesRes.error);
-  const messages = [...(messagesRes.data ?? [])].reverse(); // eskiden yeniye
+  const history = [...(messagesRes.data ?? [])].reverse(); // eskiden yeniye
   const files = filesRes.data ?? [];
+
+  // Gün seçici: seçilen günün mesajları; seçilmemişse son mesajlar
+  const selectedDay = typeof gun === "string" && DAY_RE.test(gun) ? gun : null;
+  const today = dayKey(new Date().toISOString());
+  const days = [...new Set(history.map((m) => dayKey(m.created_at)))];
+  const messages = selectedDay
+    ? history.filter((m) => dayKey(m.created_at) === selectedDay)
+    : history.slice(-MESSAGE_LIMIT);
+  const canDelete = (ownerId: string | null) => user.isAdmin || ownerId === user.id;
 
   const documents: GeneralDocument[] = files.map((f) => ({
     id: f.id,
@@ -73,6 +89,7 @@ async function General() {
     file_size: f.file_size,
     created_at: f.created_at,
     uploaderName: f.uploader?.full_name ?? "Eski üye",
+    canDelete: canDelete(f.uploaded_by),
   }));
   const filesByMessage = new Map<string, GeneralDocument[]>();
   files.forEach((f, i) => {
@@ -81,13 +98,19 @@ async function General() {
     filesByMessage.set(f.message_id, list);
   });
 
-  // En yeni link en üstte
+  // LİNKLER tüm sohbetten toplanır (gün seçiciden etkilenmez), en yenisi üstte;
+  // listeden kaldırılanlar gösterilmez
+  const removed = new Set((removedRes.data ?? []).map((r) => r.url));
   const links = extractLinks(
-    [...messages].reverse().map((m) => ({
+    [...history].reverse().map((m) => ({
       text: m.content,
       source: `${m.author?.full_name ?? "Eski üye"} · ${formatDate(m.created_at)}`,
+      authorId: m.user_id,
     })),
-  );
+  ).filter((l) => !removed.has(l.url));
+  const removableUrls = links
+    .filter((l) => user.isAdmin || l.authorIds.includes(user.id))
+    .map((l) => l.url);
 
   return (
     <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
@@ -95,12 +118,30 @@ async function General() {
         className={`${card} flex h-[calc(100dvh-14rem)] min-h-[460px] flex-col overflow-hidden`}
         aria-label="Ekip sohbeti"
       >
+        <div className="border-b border-slate-100 px-5 py-3 sm:px-6">
+          <DayFilter
+            selected={selectedDay}
+            days={days}
+            today={today}
+            total={history.length}
+            shown={messages.length}
+          />
+        </div>
         <ChatScroller messageCount={messages.length}>
           {setupMissing ? (
             <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
               Genel sayfası için veritabanı kurulumu eksik: supabase/genel.sql dosyasını
               Supabase SQL Editor&apos;de çalıştırın.
             </p>
+          ) : messages.length === 0 && selectedDay ? (
+            <div className="flex h-full flex-col items-center justify-center text-center text-slate-500">
+              <p className="font-bold text-slate-900">
+                {formatDate(`${selectedDay}T12:00:00Z`)} tarihinde mesaj yok
+              </p>
+              <p className="mt-1 text-[15px]">
+                Oklarla mesaj olan günlere geçebilir ya da &quot;Tümü&quot;ne dönebilirsiniz.
+              </p>
+            </div>
           ) : messages.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center text-center text-slate-500">
               <div className="flex size-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-600">
@@ -150,9 +191,17 @@ async function General() {
                         )}
                         {attached.length > 0 && <MessageFiles files={attached} />}
                       </div>
-                      {m.user_id === user.id && (
-                        <div className="shrink-0 self-start pt-0.5">
-                          <DeleteMessageButton messageId={m.id} />
+                      {canDelete(m.user_id) && (
+                        <div className="shrink-0 self-start">
+                          <ConfirmDeleteButton
+                            action={deleteGeneralMessage}
+                            args={[m.id]}
+                            label="Mesajı sil"
+                            title="Mesajı sil"
+                            message="Bu mesaj ve ekli dokümanları herkes için kalıcı olarak silinecek."
+                            confirmLabel="Mesajı sil"
+                            reveal
+                          />
                         </div>
                       )}
                     </div>
@@ -162,12 +211,17 @@ async function General() {
             </ol>
           )}
         </ChatScroller>
-        <MessageComposer authorName={user.name} />
+        <MessageComposer
+          authorName={user.name}
+          viewingPastDay={selectedDay !== null && selectedDay !== today}
+        />
       </section>
 
       <aside className="space-y-6 xl:sticky xl:top-8">
         <TaskLinks
           links={links}
+          scope={GENERAL_LINK_SCOPE}
+          removableUrls={removableUrls}
           title="LİNKLER"
           emptyText="Sohbette paylaşılan linkler burada otomatik listelenir."
         />
