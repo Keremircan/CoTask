@@ -23,6 +23,7 @@ import {
   type EditableTask,
   type TaskFormOptions,
 } from "./task-form-dialog";
+import { useOptimisticTasks, type TaskUpdate } from "./optimistic-tasks";
 
 export type ActionTask = EditableTask & {
   status: TaskStatus;
@@ -34,7 +35,7 @@ export type ActionTask = EditableTask & {
 //  "owner"    → Atadığım Görevler: Düzenle / Tamamlandı / Sil
 //  "detail"   → Görev detayı: kişiye göre geçerli olan tüm butonlar
 export function TaskActions({
-  task,
+  task: serverTask,
   userId,
   mode,
   formOptions,
@@ -47,7 +48,14 @@ export function TaskActions({
   afterDeleteHref?: string;
 }) {
   const router = useRouter();
-  const [pending, startTransition] = useTransition();
+  const optimistic = useOptimisticTasks();
+  // İyimser güncellemedeki durum (butonlar hemen yeni duruma göre çizilir)
+  const shown = optimistic?.tasks.find((t) => t.id === serverTask.id);
+  const task = shown
+    ? { ...serverTask, status: shown.status, assigned_to: shown.assigned_to }
+    : serverTask;
+  // Sunucu işlemleri sırayla yürür; butonları beklerken kilitlemeye gerek yok
+  const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -59,11 +67,24 @@ export function TaskActions({
   const completeAllowed = canComplete(task, userId);
   const showOwnerTools = mode !== "assignee" && isOwner;
 
-  function run(action: (id: string) => Promise<{ error: string | null }>) {
+  // Ekranı hemen günceller, kaydı arka planda yapar. Hata olursa güncelleme
+  // geri döner; uyarı sağlayıcıda gösterilir (görev başka bölüme geçtiyse bu
+  // bileşen ekrandan kalkmış olabilir).
+  function run(
+    action: (id: string) => Promise<{ error: string | null }>,
+    update: TaskUpdate,
+    then?: () => void,
+  ) {
     setError(null);
     startTransition(async () => {
+      optimistic?.apply(update);
       const result = await action(task.id);
-      if (result.error) setError(result.error);
+      if (result.error) {
+        if (optimistic) optimistic.report(result.error);
+        else setError(result.error);
+        return;
+      }
+      then?.();
     });
   }
 
@@ -75,8 +96,14 @@ export function TaskActions({
         {showAccept && (
           <button
             type="button"
-            disabled={pending}
-            onClick={() => run(acceptTask)}
+            onClick={() =>
+              run(acceptTask, {
+                type: "status",
+                id: task.id,
+                status: "in_progress",
+                assignedTo: userId,
+              })
+            }
             className={smallPrimaryButton}
           >
             <Hand className="size-4" />
@@ -86,8 +113,9 @@ export function TaskActions({
         {showReview && (
           <button
             type="button"
-            disabled={pending}
-            onClick={() => run(submitForReview)}
+            onClick={() =>
+              run(submitForReview, { type: "status", id: task.id, status: "review" })
+            }
             className={smallPrimaryButton}
           >
             <Send className="size-4" /> Kontrole gönder
@@ -96,7 +124,6 @@ export function TaskActions({
         {showOwnerTools && formOptions && (
           <button
             type="button"
-            disabled={pending}
             onClick={() => setEditing(true)}
             className={smallGhostButton}
           >
@@ -106,8 +133,8 @@ export function TaskActions({
         {showComplete && (
           <button
             type="button"
-            disabled={pending || !completeAllowed}
-            onClick={() => run(completeTask)}
+            disabled={!completeAllowed}
+            onClick={() => run(completeTask, { type: "status", id: task.id, status: "done" })}
             title={
               completeAllowed
                 ? undefined
@@ -121,7 +148,6 @@ export function TaskActions({
         {showOwnerTools && (
           <button
             type="button"
-            disabled={pending}
             onClick={() => setDeleting(true)}
             className={smallDangerButton}
           >
@@ -150,9 +176,13 @@ export function TaskActions({
         message={`"${task.title}" görevi; yorumları ve ekleriyle birlikte kalıcı olarak silinecek.`}
         confirmLabel="Görevi sil"
         onConfirm={async () => {
-          const result = await deleteTask(task.id);
-          if (!result.error && afterDeleteHref) router.push(afterDeleteHref);
-          return result;
+          // Pencere hemen kapanır, görev listeden hemen kalkar
+          run(
+            deleteTask,
+            { type: "delete", id: task.id },
+            afterDeleteHref ? () => router.push(afterDeleteHref) : undefined,
+          );
+          return { error: null };
         }}
       />
     </div>

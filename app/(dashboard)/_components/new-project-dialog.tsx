@@ -7,19 +7,26 @@ import { createProject, renameProject } from "@/actions/projects";
 import { Modal } from "@/components/ui/modal";
 import { field, fieldLabel, ghostButton, primaryButton } from "@/components/ui/styles";
 
-// Yeni proje oluşturma ve mevcut projeyi yeniden adlandırma penceresi
+// Yeni proje oluşturma ve mevcut projeyi yeniden adlandırma penceresi.
+// onCreate verilirse oluşturma iyimserdir: pencere hemen kapanır, kaydı çağıran taraf yapar.
 export function NewProjectDialog({
   open,
   onClose,
   project,
+  onCreate,
+  defaultName,
+  initialError = null,
 }: {
   open: boolean;
   onClose: () => void;
   project?: { id: string; name: string };
+  onCreate?: (name: string) => void;
+  defaultName?: string; // başarısız denemeden sonra yeniden açılınca
+  initialError?: string | null;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError);
   const renaming = Boolean(project);
 
   function close() {
@@ -42,6 +49,12 @@ export function NewProjectDialog({
           e.preventDefault();
           const name = String(new FormData(e.currentTarget).get("name") ?? "");
           setError(null);
+          if (!project && onCreate) {
+            if (!name.trim()) return setError("Proje adı zorunludur.");
+            close();
+            onCreate(name);
+            return;
+          }
           startTransition(async () => {
             const result = project
               ? await renameProject(project.id, name)
@@ -64,7 +77,7 @@ export function NewProjectDialog({
           required
           maxLength={80}
           autoFocus
-          defaultValue={project?.name}
+          defaultValue={project?.name ?? defaultName}
           disabled={pending}
           placeholder="Örn. E-Evrak Sistemi"
           className={`${field} h-10`}

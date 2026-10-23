@@ -6,7 +6,7 @@ import { ConfirmDeleteButton } from "@/components/ui/confirm-delete-button";
 import { DayFilter } from "@/components/conversation/day-filter";
 import { deleteComment } from "@/actions/task-details";
 import { formatDate, formatDateTime } from "@/lib/format";
-import { CommentForm } from "./comment-form";
+import { CommentThread } from "./comment-form";
 
 export type TaskComment = {
   id: string;
@@ -56,62 +56,56 @@ export function TaskComments({
         />
       </div>
 
-      {comments.length === 0 ? (
-        <div className="mb-4 flex items-center gap-3 rounded-xl border border-dashed border-slate-200 px-4 py-6 text-slate-500">
-          <MessagesSquare className="size-5 shrink-0 text-slate-400" />
-          {selectedDay === null
-            ? "Henüz yorum yok. İlk yorumu sen yaz."
-            : selectedDay === today
-              ? totalCount
-                ? "Bugün yorum yok. Önceki günler için oklara ya da “Tümü”ne bakın."
-                : "Henüz yorum yok. İlk yorumu sen yaz."
-              : `${formatDate(`${selectedDay}T12:00:00Z`)} tarihinde yorum yok.`}
-        </div>
-      ) : (
-        <ol className="mb-4 space-y-4">
-          {comments.map((comment) => {
-            const name = comment.author?.full_name || "Eski üye";
-            const canDelete = isAdmin || comment.user_id === currentUserId;
-            return (
-              <li key={comment.id} className="group flex gap-3.5">
-                <Avatar name={name} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-x-2.5">
-                    <span className="font-bold text-slate-900">{name}</span>
-                    <time
-                      dateTime={comment.created_at}
-                      className="text-sm text-slate-400"
-                    >
-                      {formatDateTime(comment.created_at)}
-                    </time>
-                    {canDelete && (
-                      <span className="ml-auto">
-                        <ConfirmDeleteButton
-                          action={deleteComment}
-                          args={[comment.id]}
-                          label="Yorumu sil"
-                          title="Yorumu sil"
-                          message="Bu yorum herkes için kalıcı olarak silinecek."
-                          confirmLabel="Yorumu sil"
-                          reveal
-                        />
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-1.5 rounded-xl rounded-tl-md bg-slate-50 px-4 py-2">
-                    <Markdown>{comment.content}</Markdown>
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ol>
-      )}
-
-      <CommentForm
+      <CommentThread
         taskId={taskId}
         authorName={currentUserName}
         viewingPastDay={selectedDay !== null && selectedDay !== today}
+        hasItems={comments.length > 0}
+        empty={
+          <div className="mb-4 flex items-center gap-3 rounded-xl border border-dashed border-slate-200 px-4 py-6 text-slate-500">
+            <MessagesSquare className="size-5 shrink-0 text-slate-400" />
+            {selectedDay === null
+              ? "Henüz yorum yok. İlk yorumu sen yaz."
+              : selectedDay === today
+                ? totalCount
+                  ? "Bugün yorum yok. Önceki günler için oklara ya da “Tümü”ne bakın."
+                  : "Henüz yorum yok. İlk yorumu sen yaz."
+                : `${formatDate(`${selectedDay}T12:00:00Z`)} tarihinde yorum yok.`}
+          </div>
+        }
+        items={comments.map((comment) => {
+          const name = comment.author?.full_name || "Eski üye";
+          const canDelete = isAdmin || comment.user_id === currentUserId;
+          return (
+            <li key={comment.id} className="group flex gap-3.5">
+              <Avatar name={name} />
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-x-2.5">
+                  <span className="font-bold text-slate-900">{name}</span>
+                  <time dateTime={comment.created_at} className="text-sm text-slate-400">
+                    {formatDateTime(comment.created_at)}
+                  </time>
+                  {canDelete && (
+                    <span className="ml-auto">
+                      <ConfirmDeleteButton
+                        action={deleteComment}
+                        args={[comment.id]}
+                        label="Yorumu sil"
+                        title="Yorumu sil"
+                        message="Bu yorum herkes için kalıcı olarak silinecek."
+                        confirmLabel="Yorumu sil"
+                        reveal
+                      />
+                    </span>
+                  )}
+                </div>
+                <div className="mt-1.5 rounded-xl rounded-tl-md bg-slate-50 px-4 py-2">
+                  <Markdown>{comment.content}</Markdown>
+                </div>
+              </div>
+            </li>
+          );
+        })}
       />
     </section>
   );

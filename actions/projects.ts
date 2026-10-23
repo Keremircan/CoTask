@@ -21,15 +21,17 @@ function projectError(error: PostgrestError, fallback: string) {
   return fallback;
 }
 
-export async function createProject(name: string): Promise<ProjectResult> {
+// id: tarayıcıda üretilir; böylece sidebar'a iyimser eklenen proje kayıttan sonra aynı kalır
+export async function createProject(name: string, id?: string): Promise<ProjectResult> {
   const userId = await getUserId();
   const parsed = readName(name);
   if (typeof parsed !== "string") return parsed;
+  if (id !== undefined && !isUuid(id)) return { error: "Geçersiz proje." };
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("projects")
-    .insert({ name: parsed, created_by: userId })
+    .insert({ ...(id ? { id } : {}), name: parsed, created_by: userId })
     .select("id")
     .single();
 

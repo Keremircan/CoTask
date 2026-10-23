@@ -3,10 +3,10 @@ import type { Metadata } from "next";
 import { createClient } from "@/utils/supabase/server";
 import { getUserId } from "@/lib/auth";
 import { TASK_LIST_SELECT } from "@/lib/task-queries";
-import { card } from "@/components/ui/styles";
-import { TaskList } from "@/components/tasks/task-list";
+import { TaskSection } from "@/components/tasks/task-list";
+import { OptimisticTasksProvider } from "@/components/tasks/optimistic-tasks";
 import { PageHeader } from "../_components/page-header";
-import { ListSkeleton, SectionTitle } from "../_components/list-parts";
+import { ListSkeleton } from "../_components/list-parts";
 
 export const metadata: Metadata = { title: "Görevlerim · CoTask" };
 
@@ -30,9 +30,6 @@ async function MyTasks() {
     .order("created_at", { ascending: false });
 
   const all = tasks ?? [];
-  const waiting = all.filter((t) => t.status === "pending");
-  const working = all.filter((t) => t.status === "in_progress" || t.status === "review");
-  const done = all.filter((t) => t.status === "done");
 
   return (
     <>
@@ -47,37 +44,34 @@ async function MyTasks() {
         </p>
       )}
 
-      <div className="space-y-4">
-        <section className={`${card} p-4 sm:p-5`}>
-          <SectionTitle title="Onay bekleyenler" count={waiting.length} />
-          <TaskList
-            tasks={waiting}
+      <OptimisticTasksProvider tasks={all}>
+        <div className="space-y-4">
+          <TaskSection
+            title="Onay bekleyenler"
+            tasks={all}
+            statuses={["pending"]}
             userId={userId}
             mode="assignee"
             empty="Kabul etmenizi bekleyen görev yok."
           />
-        </section>
-
-        <section className={`${card} p-4 sm:p-5`}>
-          <SectionTitle title="Üzerimdeki işler" count={working.length} />
-          <TaskList
-            tasks={working}
+          <TaskSection
+            title="Üzerimdeki işler"
+            tasks={all}
+            statuses={["in_progress", "review"]}
             userId={userId}
             mode="assignee"
             empty="Şu an üzerinizde iş yok."
           />
-        </section>
-
-        <section className={`${card} p-4 sm:p-5`}>
-          <SectionTitle title="Tamamlananlar" count={done.length} />
-          <TaskList
-            tasks={done}
+          <TaskSection
+            title="Tamamlananlar"
+            tasks={all}
+            statuses={["done"]}
             userId={userId}
             mode="assignee"
             empty="Henüz tamamlanan işiniz yok."
           />
-        </section>
-      </div>
+        </div>
+      </OptimisticTasksProvider>
     </>
   );
 }

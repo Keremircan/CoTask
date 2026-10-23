@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ChevronDown,
   CircleCheck,
@@ -14,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import type { ProjectSummary } from "@/lib/projects";
+import { createProject } from "@/actions/projects";
 import { NewProjectDialog } from "./new-project-dialog";
 import { ProjectMenu } from "./project-menu";
 
@@ -49,6 +50,30 @@ export function SidebarNavList({
 }: Props & { pathname: string | null }) {
   const [projectsOpen, setProjectsOpen] = useState(true);
   const [creating, setCreating] = useState(false);
+  const router = useRouter();
+  const [, startTransition] = useTransition();
+  // Başarısız oluşturmadan sonra pencere girilen adla ve hatayla yeniden açılır
+  const [retry, setRetry] = useState<{ key: number; name: string; error: string } | null>(null);
+  // Yeni proje kayıt beklenmeden listenin sonuna eklenir (liste oluşturulma sırasında)
+  const [shownProjects, addProject] = useOptimistic<ProjectSummary[], ProjectSummary>(
+    projects,
+    (list, project) => [...list, project],
+  );
+
+  function create(name: string) {
+    const id = crypto.randomUUID();
+    setRetry(null);
+    startTransition(async () => {
+      addProject({ id, name: name.trim().replace(/\s+/g, " "), created_by: userId });
+      const result = await createProject(name, id);
+      if (result.error) {
+        setRetry({ key: Date.now(), name, error: result.error });
+        setCreating(true);
+        return;
+      }
+      router.push(`/projeler/${id}`);
+    });
+  }
 
   const isActive = (href: string) =>
     pathname !== null &&
@@ -102,15 +127,17 @@ export function SidebarNavList({
 
         {projectsOpen && (
           <ul className="mt-1.5 flex flex-col gap-0.5">
-            {projects.length === 0 && (
+            {shownProjects.length === 0 && (
               <li className="px-3 py-2 text-sm text-neutral-500">
                 Henüz proje yok. + ile oluşturun.
               </li>
             )}
-            {projects.map((project) => {
+            {shownProjects.map((project) => {
               const href = `/projeler/${project.id}`;
               const active = isActive(href);
-              const canManage = isAdmin || project.created_by === userId;
+              // Kaydı henüz bitmemiş (iyimser) projede düzenle/sil menüsü yok
+              const saved = projects.some((p) => p.id === project.id);
+              const canManage = saved && (isAdmin || project.created_by === userId);
               return (
                 <li key={project.id} className="relative">
                   <Link
@@ -139,7 +166,14 @@ export function SidebarNavList({
         )}
       </div>
 
-      <NewProjectDialog open={creating} onClose={() => setCreating(false)} />
+      <NewProjectDialog
+        key={retry?.key ?? 0}
+        open={creating}
+        onClose={() => setCreating(false)}
+        onCreate={create}
+        defaultName={retry?.name}
+        initialError={retry?.error ?? null}
+      />
     </div>
   );
 }

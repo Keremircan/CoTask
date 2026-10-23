@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { CalendarClock, FolderKanban, MessageSquare, UserRound } from "lucide-react";
 import type { TaskPriority, TaskStatus } from "@/types/database";
@@ -7,6 +9,8 @@ import { StatusBadge } from "./status-badge";
 import { PriorityBadge } from "./priority";
 import { TaskActions } from "./task-actions";
 import type { TaskFormOptions } from "./task-form-dialog";
+import { useShownTasks } from "./optimistic-tasks";
+import { card } from "@/components/ui/styles";
 
 export type TaskListItem = {
   id: string;
@@ -23,6 +27,35 @@ export type TaskListItem = {
   creator: { full_name: string | null } | null;
   comments: { count: number }[];
 };
+
+// Sayfadaki tüm görevlerden belli durumlardakileri gösteren bölüm (kart + başlık + liste).
+// İyimser güncellemeler (OptimisticTasksProvider) uygulanır: kabul edilen görev
+// hemen "Üzerimdeki işler"e geçer, silinen görev hemen kaybolur.
+export function TaskSection({
+  title,
+  tasks,
+  statuses,
+  ...listProps
+}: {
+  title: string;
+  tasks: TaskListItem[];
+  statuses: TaskStatus[];
+  userId: string;
+  mode: "assignee" | "owner";
+  formOptions?: TaskFormOptions;
+  empty: string;
+}) {
+  const shown = useShownTasks(tasks).filter((t) => statuses.includes(t.status));
+  return (
+    <section className={`${card} p-4 sm:p-5`}>
+      <div className="mb-4 flex items-baseline justify-between gap-3">
+        <h2 className="text-base font-bold text-slate-900">{title}</h2>
+        <span className="text-sm text-slate-500">{shown.length} iş</span>
+      </div>
+      <TaskList tasks={shown} {...listProps} />
+    </section>
+  );
+}
 
 // Atadığım Görevler ve Görevlerim sayfalarının ortak satır listesi
 export function TaskList({

@@ -15,13 +15,13 @@ import { getTaskFormOptions } from "@/lib/task-queries";
 import { Markdown } from "@/components/markdown/markdown";
 import { Avatar } from "@/components/ui/avatar";
 import { card } from "@/components/ui/styles";
-import { StatusBadge } from "@/components/tasks/status-badge";
+import {
+  OptimisticStatusBadge,
+  OptimisticTasksProvider,
+} from "@/components/tasks/optimistic-tasks";
 import { TaskActions } from "@/components/tasks/task-actions";
 import { TaskComments } from "@/components/tasks/task-comments";
-import {
-  TaskAttachments,
-  type TaskAttachment,
-} from "@/components/tasks/task-attachments";
+import { TaskAttachments, type TaskAttachment } from "@/components/tasks/task-attachments";
 import { TaskLinks } from "@/components/tasks/task-links";
 
 export const metadata: Metadata = { title: "Görev detayı · CoTask" };
@@ -60,12 +60,10 @@ async function TaskDetail({
       const list = rows ?? [];
       const signed = new Map<string, string>();
       if (list.length) {
-        const { data } = await supabase.storage
-          .from(ATTACHMENTS_BUCKET)
-          .createSignedUrls(
-            list.map((a) => a.file_url),
-            SIGNED_URL_TTL_SECONDS,
-          );
+        const { data } = await supabase.storage.from(ATTACHMENTS_BUCKET).createSignedUrls(
+          list.map((a) => a.file_url),
+          SIGNED_URL_TTL_SECONDS,
+        );
         data?.forEach((item) => {
           if (item.path && item.signedUrl) signed.set(item.path, item.signedUrl);
         });
@@ -166,66 +164,76 @@ async function TaskDetail({
 
       <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0 space-y-4">
-          {/* Üst bilgi kartı */}
-          <section className={`${card} p-4 sm:p-5`}>
-            <div className="flex flex-wrap items-center gap-2">
-              <StatusBadge status={task.status} />
-              <PriorityBadge priority={task.priority} />
-            </div>
-            <h1 className="mt-3 text-2xl leading-tight font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere]">
-              {task.title}
-            </h1>
+          {/* Üst bilgi kartı: durum butonları rozeti beklemeden günceller */}
+          <OptimisticTasksProvider
+            tasks={[
+              {
+                id: task.id,
+                status: task.status,
+                assigned_to: task.assigned_to,
+              },
+            ]}
+          >
+            <section className={`${card} p-4 sm:p-5`}>
+              <div className="flex flex-wrap items-center gap-2">
+                <OptimisticStatusBadge id={task.id} status={task.status} />
+                <PriorityBadge priority={task.priority} />
+              </div>
+              <h1 className="mt-3 text-2xl leading-tight font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere]">
+                {task.title}
+              </h1>
 
-            {isOpen && task.status === "pending" && (
-              <p className="mt-3 flex items-center gap-2 rounded-xl bg-amber-50 px-3.5 py-2.5 text-sm text-amber-800">
-                <Hand className="size-4 shrink-0" />
-                Bu görev herkese atandı; ilk kabul eden kişi görevi üstlenir.
-              </p>
-            )}
-
-            <dl className="mt-4 grid grid-cols-1 gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2 2xl:grid-cols-4">
-              <Meta label="Atayan">
-                <Person name={creatorName} />
-              </Meta>
-              <Meta label="Sorumlu">
-                <Person name={assigneeName} />
-              </Meta>
-              <Meta label="Proje">
-                {task.project ? (
-                  <Link
-                    href={`/projeler/${task.project.id}`}
-                    className="flex items-center gap-2 hover:text-teal-700"
-                  >
-                    <FolderKanban className="size-4 text-slate-400" />
-                    <span className="truncate">{task.project.name}</span>
-                  </Link>
-                ) : (
-                  <span className="text-slate-400">Projesiz</span>
-                )}
-              </Meta>
-              <Meta label="Oluşturulma">
-                <span className="flex items-center gap-2">
-                  <CalendarDays className="size-4 text-slate-400" />
-                  {formatDateTime(task.created_at)}
-                </span>
-              </Meta>
-            </dl>
-
-            <div className="mt-5 border-t border-slate-100 pt-5">
-              <TaskActions
-                task={task}
-                userId={user.id}
-                mode="detail"
-                formOptions={formOptions}
-                afterDeleteHref={backHref}
-              />
-              {task.accepted_at && (
-                <p className="mt-3 text-sm text-slate-400">
-                  {formatDateTime(task.accepted_at)} tarihinde kabul edildi.
+              {isOpen && task.status === "pending" && (
+                <p className="mt-3 flex items-center gap-2 rounded-xl bg-amber-50 px-3.5 py-2.5 text-sm text-amber-800">
+                  <Hand className="size-4 shrink-0" />
+                  Bu görev herkese atandı; ilk kabul eden kişi görevi üstlenir.
                 </p>
               )}
-            </div>
-          </section>
+
+              <dl className="mt-4 grid grid-cols-1 gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2 2xl:grid-cols-4">
+                <Meta label="Atayan">
+                  <Person name={creatorName} />
+                </Meta>
+                <Meta label="Sorumlu">
+                  <Person name={assigneeName} />
+                </Meta>
+                <Meta label="Proje">
+                  {task.project ? (
+                    <Link
+                      href={`/projeler/${task.project.id}`}
+                      className="flex items-center gap-2 hover:text-teal-700"
+                    >
+                      <FolderKanban className="size-4 text-slate-400" />
+                      <span className="truncate">{task.project.name}</span>
+                    </Link>
+                  ) : (
+                    <span className="text-slate-400">Projesiz</span>
+                  )}
+                </Meta>
+                <Meta label="Oluşturulma">
+                  <span className="flex items-center gap-2">
+                    <CalendarDays className="size-4 text-slate-400" />
+                    {formatDateTime(task.created_at)}
+                  </span>
+                </Meta>
+              </dl>
+
+              <div className="mt-5 border-t border-slate-100 pt-5">
+                <TaskActions
+                  task={task}
+                  userId={user.id}
+                  mode="detail"
+                  formOptions={formOptions}
+                  afterDeleteHref={backHref}
+                />
+                {task.accepted_at && (
+                  <p className="mt-3 text-sm text-slate-400">
+                    {formatDateTime(task.accepted_at)} tarihinde kabul edildi.
+                  </p>
+                )}
+              </div>
+            </section>
+          </OptimisticTasksProvider>
 
           {/* Açıklama */}
           <section className={`${card} p-4 sm:p-5`}>
@@ -273,9 +281,7 @@ function Person({ name }: { name: string }) {
 function Meta({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs font-medium tracking-wide text-slate-400 uppercase">
-        {label}
-      </dt>
+      <dt className="text-xs font-medium tracking-wide text-slate-400 uppercase">{label}</dt>
       <dd className="mt-1.5 text-sm font-medium text-slate-800">{children}</dd>
     </div>
   );
