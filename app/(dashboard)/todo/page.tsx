@@ -8,13 +8,13 @@ import { card } from "@/components/ui/styles";
 import { TodoBoard } from "@/components/todo/todo-board";
 import { PageHeader } from "../_components/page-header";
 
-export const metadata: Metadata = { title: "Yapılacaklarım · CoTask" };
+export const metadata: Metadata = { title: "Yapılacaklar · CoTask" };
 
 export default function TodoPage() {
   return (
     <>
       <PageHeader
-        title="Yapılacaklarım"
+        title="Yapılacaklar"
         label="KİŞİSEL"
         description="Sadece sizin görebildiğiniz kişisel yapılacaklar listesi."
       />
