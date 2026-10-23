@@ -463,7 +463,7 @@ grant select, insert, update, delete on public.projects     to authenticated;
 grant select, insert, update, delete on public.roles        to authenticated;
 grant select, insert, update, delete on public.member_roles to authenticated;
 
--- Projeler: herkes görür ve oluşturur; oluşturan ya da Admin düzenler/siler
+-- Projeler: herkes görür, oluşturur, düzenler ve siler
 drop policy if exists "Projects read"   on public.projects;
 drop policy if exists "Projects insert" on public.projects;
 drop policy if exists "Projects update" on public.projects;
@@ -473,13 +473,31 @@ create policy "Projects read" on public.projects
   for select to authenticated using (true);
 create policy "Projects insert" on public.projects
   for insert to authenticated with check (created_by = (select auth.uid()));
+-- Düzenleme (ad, link) ve silme tüm ekibe açık; oluşturan kişi trigger ile sabit kalır
 create policy "Projects update" on public.projects
-  for update to authenticated
-  using (created_by = (select auth.uid()) or (select public.is_admin()))
-  with check (created_by = (select auth.uid()) or (select public.is_admin()));
+  for update to authenticated using (true) with check (true);
+
+create or replace function public.keep_project_creator()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if auth.uid() is not null then
+    new.created_by := old.created_by;
+    new.created_at := old.created_at;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists projects_keep_creator on public.projects;
+create trigger projects_keep_creator
+  before update on public.projects
+  for each row execute function public.keep_project_creator();
+-- Silme de tüm ekibe açık (içinde görev olan proje silinemez)
 create policy "Projects delete" on public.projects
-  for delete to authenticated
-  using (created_by = (select auth.uid()) or (select public.is_admin()));
+  for delete to authenticated using (true);
 
 -- Görevler: herkes görür; oluşturan kendisi olmalı; kurallar trigger'da;
 -- sadece atayan siler

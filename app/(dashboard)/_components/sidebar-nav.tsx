@@ -37,7 +37,6 @@ const itemActive = "bg-white/[0.08] font-semibold text-white";
 type Props = {
   projects: ProjectSummary[];
   userId: string;
-  isAdmin: boolean;
 };
 
 export function SidebarNav(props: Props) {
@@ -48,7 +47,6 @@ export function SidebarNav(props: Props) {
 export function SidebarNavList({
   projects,
   userId,
-  isAdmin,
   pathname,
 }: Props & { pathname: string | null }) {
   const [projectsOpen, setProjectsOpen] = useState(true);
@@ -149,9 +147,8 @@ export function SidebarNavList({
             {shownProjects.map((project) => {
               const href = `/projeler/${project.id}`;
               const active = isActive(href);
-              // Kaydı henüz bitmemiş (iyimser) projede düzenle/sil menüsü yok
-              const saved = projects.some((p) => p.id === project.id);
-              const canManage = saved && (isAdmin || project.created_by === userId);
+              // Düzenleme ve silme tüm ekibe açık; kaydı henüz bitmemiş (iyimser) projede menü yok
+              const canManage = projects.some((p) => p.id === project.id);
               return (
                 <li key={project.id} className="relative">
                   <Link

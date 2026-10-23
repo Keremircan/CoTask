@@ -61,7 +61,7 @@ async function SidebarUser() {
 
 async function SidebarData() {
   const [user, projects] = await Promise.all([getCurrentUser(), getProjects()]);
-  const props = { projects, userId: user.id, isAdmin: user.isAdmin };
+  const props = { projects, userId: user.id };
   return (
     // Aktif sayfa (usePathname) istek anında bilinir; o gelene kadar vurgusuz liste
     <Suspense fallback={<SidebarNavList {...props} pathname={null} />}>

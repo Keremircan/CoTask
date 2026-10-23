@@ -71,7 +71,7 @@ export async function renameProject(
 
   if (error) return { error: projectError(error, "Proje adı değiştirilemedi.") };
   if (!data.length) {
-    return { error: "Projeyi sadece oluşturan kişi veya Admin düzenleyebilir." };
+    return { error: "Proje bulunamadı (silinmiş olabilir)." };
   }
 
   revalidatePath("/", "layout");
@@ -91,7 +91,7 @@ export async function deleteProject(projectId: string): Promise<ProjectResult> {
 
   if (error) return { error: projectError(error, "Proje silinemedi.") };
   if (!data.length) {
-    return { error: "Projeyi sadece oluşturan kişi veya Admin silebilir." };
+    return { error: "Proje bulunamadı (silinmiş olabilir)." };
   }
 
   revalidatePath("/", "layout");
