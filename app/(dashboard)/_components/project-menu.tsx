@@ -29,7 +29,7 @@ export function ProjectMenu({
         triggerClassName="rounded-md p-1 text-neutral-400 transition hover:bg-white/10 hover:text-white"
         items={[
           {
-            label: "Yeniden adlandır",
+            label: "Düzenle",
             icon: <Pencil className="size-4" />,
             onSelect: () => setRenaming(true),
           },

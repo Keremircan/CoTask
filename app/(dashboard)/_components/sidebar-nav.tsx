@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import type { ProjectSummary } from "@/lib/projects";
 import { createProject } from "@/actions/projects";
+import { parseProjectUrl } from "@/lib/project-url";
 import { NewProjectDialog } from "./new-project-dialog";
 import { ProjectMenu } from "./project-menu";
 
@@ -55,21 +56,32 @@ export function SidebarNavList({
   const router = useRouter();
   const [, startTransition] = useTransition();
   // Başarısız oluşturmadan sonra pencere girilen adla ve hatayla yeniden açılır
-  const [retry, setRetry] = useState<{ key: number; name: string; error: string } | null>(null);
+  const [retry, setRetry] = useState<{
+    key: number;
+    name: string;
+    link: string;
+    error: string;
+  } | null>(null);
   // Yeni proje kayıt beklenmeden listenin sonuna eklenir (liste oluşturulma sırasında)
   const [shownProjects, addProject] = useOptimistic<ProjectSummary[], ProjectSummary>(
     projects,
     (list, project) => [...list, project],
   );
 
-  function create(name: string) {
+  function create(name: string, link: string) {
     const id = crypto.randomUUID();
     setRetry(null);
     startTransition(async () => {
-      addProject({ id, name: name.trim().replace(/\s+/g, " "), created_by: userId });
-      const result = await createProject(name, id);
+      const url = parseProjectUrl(link);
+      addProject({
+        id,
+        name: name.trim().replace(/\s+/g, " "),
+        url: "url" in url ? url.url : null,
+        created_by: userId,
+      });
+      const result = await createProject(name, id, link);
       if (result.error) {
-        setRetry({ key: Date.now(), name, error: result.error });
+        setRetry({ key: Date.now(), name, link, error: result.error });
         setCreating(true);
         return;
       }
@@ -174,6 +186,7 @@ export function SidebarNavList({
         onClose={() => setCreating(false)}
         onCreate={create}
         defaultName={retry?.name}
+        defaultLink={retry?.link}
         initialError={retry?.error ?? null}
       />
     </div>

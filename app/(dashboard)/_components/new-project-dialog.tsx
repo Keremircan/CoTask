@@ -2,12 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CircleAlert, Plus } from "lucide-react";
+import { CircleAlert, Link2, Plus } from "lucide-react";
+import { MAX_PROJECT_URL, parseProjectUrl } from "@/lib/project-url";
 import { createProject, renameProject } from "@/actions/projects";
 import { Modal } from "@/components/ui/modal";
 import { field, fieldLabel, ghostButton, primaryButton } from "@/components/ui/styles";
 
-// Yeni proje oluşturma ve mevcut projeyi yeniden adlandırma penceresi.
+// Yeni proje oluşturma ve mevcut projeyi düzenleme (ad + isteğe bağlı link) penceresi.
 // onCreate verilirse oluşturma iyimserdir: pencere hemen kapanır, kaydı çağıran taraf yapar.
 export function NewProjectDialog({
   open,
@@ -15,13 +16,15 @@ export function NewProjectDialog({
   project,
   onCreate,
   defaultName,
+  defaultLink,
   initialError = null,
 }: {
   open: boolean;
   onClose: () => void;
-  project?: { id: string; name: string };
-  onCreate?: (name: string) => void;
+  project?: { id: string; name: string; url?: string | null };
+  onCreate?: (name: string, link: string) => void;
   defaultName?: string; // başarısız denemeden sonra yeniden açılınca
+  defaultLink?: string;
   initialError?: string | null;
 }) {
   const router = useRouter();
@@ -39,7 +42,7 @@ export function NewProjectDialog({
       open={open}
       onClose={close}
       size="sm"
-      title={renaming ? "Projeyi yeniden adlandır" : "Yeni proje"}
+      title={renaming ? "Projeyi düzenle" : "Yeni proje"}
       description={
         renaming ? undefined : "Projeye bir ad verin; görevleri bu proje altında toplayacaksınız."
       }
@@ -47,18 +50,23 @@ export function NewProjectDialog({
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          const name = String(new FormData(e.currentTarget).get("name") ?? "");
+          const form = new FormData(e.currentTarget);
+          const name = String(form.get("name") ?? "");
+          const link = String(form.get("url") ?? "");
           setError(null);
+          // Link hatası pencere kapanmadan gösterilsin
+          const checked = parseProjectUrl(link);
+          if ("error" in checked) return setError(checked.error);
           if (!project && onCreate) {
             if (!name.trim()) return setError("Proje adı zorunludur.");
             close();
-            onCreate(name);
+            onCreate(name, link);
             return;
           }
           startTransition(async () => {
             const result = project
-              ? await renameProject(project.id, name)
-              : await createProject(name);
+              ? await renameProject(project.id, name, link)
+              : await createProject(name, undefined, link);
             if (result.error) {
               setError(result.error);
               return;
@@ -82,6 +90,24 @@ export function NewProjectDialog({
           placeholder="Örn. E-Evrak Sistemi"
           className={`${field} h-10`}
         />
+        <label htmlFor="project-url" className={`${fieldLabel} mt-4`}>
+          Proje linki <span className="font-normal text-slate-400">(isteğe bağlı)</span>
+        </label>
+        <div className="relative">
+          <Link2 className="pointer-events-none absolute top-1/2 left-3 mt-[3px] size-4 -translate-y-1/2 text-slate-400" />
+          <input
+            id="project-url"
+            name="url"
+            type="text"
+            inputMode="url"
+            autoComplete="url"
+            maxLength={MAX_PROJECT_URL}
+            defaultValue={project?.url ?? defaultLink}
+            disabled={pending}
+            placeholder="https://github.com/ekip/proje"
+            className={`${field} h-10 pl-9`}
+          />
+        </div>
         {error && (
           <p
             role="alert"

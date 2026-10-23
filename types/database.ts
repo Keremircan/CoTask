@@ -16,6 +16,7 @@ export type Profile = {
 export type Project = {
   id: string;
   name: string;
+  url: string | null; // isteğe bağlı proje linki
   created_by: string | null;
   created_at: string;
 };

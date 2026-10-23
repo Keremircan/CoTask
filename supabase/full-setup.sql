@@ -254,6 +254,13 @@ create table if not exists public.projects (
 create unique index if not exists projects_name_key on public.projects (lower(trim(name)));
 create index if not exists projects_created_by_idx on public.projects (created_by);
 
+-- İsteğe bağlı proje linki (proje sayfasında adın yanında gösterilir)
+alter table public.projects add column if not exists url text;
+alter table public.projects drop constraint if exists projects_url_check;
+alter table public.projects
+  add constraint projects_url_check
+  check (url is null or (url ~* '^https?://' and char_length(url) <= 2048));
+
 
 -- ---------------------------------------------------------------------
 -- 2) ROLLER
