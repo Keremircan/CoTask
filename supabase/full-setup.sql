@@ -340,6 +340,10 @@ alter table public.tasks
   check (status in ('pending', 'in_progress', 'review', 'done'));
 alter table public.tasks alter column status set default 'pending';
 
+-- Revize sayısı (Kontrol → Yapılıyor geçişinde artar)
+alter table public.tasks
+  add column if not exists revision_count integer not null default 0;
+
 
 -- ---------------------------------------------------------------------
 -- 4) GÖREV AKIŞI KURALLARI (arayüzü atlayan isteklere karşı da korur)
@@ -363,8 +367,12 @@ begin
   if tg_op = 'INSERT' then
     new.status := 'pending';
     new.accepted_at := null;
+    new.revision_count := 0;
     return new;
   end if;
+
+  -- Revize sayacı elle değiştirilemez; sadece "Revize Ver" geçişinde artar
+  new.revision_count := old.revision_count;
 
   is_creator := old.created_by is not distinct from uid;
 
@@ -411,6 +419,12 @@ begin
       if old.assigned_to is distinct from uid then
         raise exception 'Görevi sadece sorumlusu kontrole gönderebilir.' using errcode = '42501';
       end if;
+    elsif old.status = 'review' and new.status = 'in_progress' then
+      -- Revize Ver: kontroldeki görev, atayan kişi tarafından "Yapılıyor"a geri döner
+      if not is_creator then
+        raise exception 'Revizeyi sadece görevi atayan kişi verebilir.' using errcode = '42501';
+      end if;
+      new.revision_count := old.revision_count + 1;
     elsif old.status in ('in_progress', 'review') and new.status = 'done' then
       if not is_creator then
         raise exception 'Görevi sadece atayan kişi tamamlayabilir.' using errcode = '42501';

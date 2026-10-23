@@ -77,6 +77,13 @@ export function canSubmitForReview(task: WorkflowTask, userId: string) {
   return task.status === "in_progress" && task.assigned_to === userId;
 }
 
+// Revize Ver: kontroldeki görevi sadece atayan kişi "Yapılıyor"a geri gönderir
+export function canRequestRevision(task: WorkflowTask, userId: string) {
+  return task.status === "review" && task.created_by === userId;
+}
+
+export const MAX_REVISION_NOTE = 5_000;
+
 // Sadece görevi atayan kişi, görev kabul edildikten sonra tamamlar
 export function canComplete(task: WorkflowTask, userId: string) {
   return (

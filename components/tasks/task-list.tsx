@@ -7,6 +7,7 @@ import { formatDateTime } from "@/lib/format";
 import { previewText } from "@/lib/tasks";
 import { StatusBadge } from "./status-badge";
 import { PriorityBadge } from "./priority";
+import { RevisionBadge } from "./revision";
 import { TaskActions } from "./task-actions";
 import type { TaskFormOptions } from "./task-form-dialog";
 import { useShownTasks } from "./optimistic-tasks";
@@ -18,6 +19,7 @@ export type TaskListItem = {
   description: string | null;
   status: TaskStatus;
   priority: TaskPriority;
+  revision_count: number;
   created_at: string;
   assigned_to: string | null;
   created_by: string | null;
@@ -102,6 +104,7 @@ export function TaskList({
                   {task.title}
                 </Link>
                 <StatusBadge status={task.status} />
+                <RevisionBadge count={task.revision_count} />
                 <PriorityBadge priority={task.priority} />
               </div>
               {task.description && (

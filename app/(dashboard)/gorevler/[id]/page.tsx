@@ -20,6 +20,7 @@ import {
   OptimisticTasksProvider,
 } from "@/components/tasks/optimistic-tasks";
 import { TaskActions } from "@/components/tasks/task-actions";
+import { RevisionBadge, RevisionNotice } from "@/components/tasks/revision";
 import { TaskComments } from "@/components/tasks/task-comments";
 import { TaskAttachments, type TaskAttachment } from "@/components/tasks/task-attachments";
 import { TaskLinks } from "@/components/tasks/task-links";
@@ -85,7 +86,7 @@ async function TaskDetail({
       .from("tasks")
       .select(
         `id, title, description, status, priority, project_id, assigned_to, created_by,
-         accepted_at, created_at,
+         accepted_at, revision_count, created_at,
          project:projects!tasks_project_id_fkey(id, name),
          assignee:profiles!tasks_assigned_to_fkey(full_name),
          creator:profiles!tasks_created_by_fkey(full_name)`,
@@ -177,12 +178,19 @@ async function TaskDetail({
             <section className={`${card} p-4 sm:p-5`}>
               <div className="flex flex-wrap items-center gap-2">
                 <OptimisticStatusBadge id={task.id} status={task.status} />
-                <PriorityBadge priority={task.priority} />
+                <RevisionBadge count={task.revision_count} />
+              <PriorityBadge priority={task.priority} />
               </div>
               <h1 className="mt-3 text-2xl leading-tight font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere]">
                 {task.title}
               </h1>
 
+              <RevisionNotice
+                id={task.id}
+                status={task.status}
+                revisionCount={task.revision_count}
+                isAssignee={task.assigned_to === user.id}
+              />
               {isOpen && task.status === "pending" && (
                 <p className="mt-3 flex items-center gap-2 rounded-xl bg-amber-50 px-3.5 py-2.5 text-sm text-amber-800">
                   <Hand className="size-4 shrink-0" />

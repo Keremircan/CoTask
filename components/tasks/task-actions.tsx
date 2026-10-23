@@ -2,14 +2,15 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCheck, Hand, Pencil, Send, Trash } from "lucide-react";
+import { CheckCheck, Hand, Pencil, RotateCcw, Send, Trash } from "lucide-react";
 import {
   acceptTask,
   completeTask,
   deleteTask,
+  requestRevision,
   submitForReview,
 } from "@/actions/tasks";
-import { canAccept, canComplete, canSubmitForReview } from "@/lib/tasks";
+import { canAccept, canComplete, canRequestRevision, canSubmitForReview } from "@/lib/tasks";
 import type { TaskStatus } from "@/types/database";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
@@ -24,6 +25,7 @@ import {
   type TaskFormOptions,
 } from "./task-form-dialog";
 import { useOptimisticTasks, type TaskUpdate } from "./optimistic-tasks";
+import { RevisionDialog } from "./revision";
 
 export type ActionTask = EditableTask & {
   status: TaskStatus;
@@ -32,7 +34,7 @@ export type ActionTask = EditableTask & {
 
 // mode:
 //  "assignee" → Görevlerim: Kabul Et / Kontrole Gönder
-//  "owner"    → Atadığım Görevler: Düzenle / Tamamlandı / Sil
+//  "owner"    → Atadığım Görevler: Düzenle / Revize Ver / Tamamlandı / Sil
 //  "detail"   → Görev detayı: kişiye göre geçerli olan tüm butonlar
 export function TaskActions({
   task: serverTask,
@@ -59,6 +61,7 @@ export function TaskActions({
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [revising, setRevising] = useState(false);
 
   const isOwner = task.created_by === userId;
   const showAccept = mode !== "owner" && canAccept(task, userId);
@@ -66,6 +69,7 @@ export function TaskActions({
   const showComplete = mode !== "assignee" && isOwner && task.status !== "done";
   const completeAllowed = canComplete(task, userId);
   const showOwnerTools = mode !== "assignee" && isOwner;
+  const showRevision = mode !== "assignee" && canRequestRevision(task, userId);
 
   // Ekranı hemen günceller, kaydı arka planda yapar. Hata olursa güncelleme
   // geri döner; uyarı sağlayıcıda gösterilir (görev başka bölüme geçtiyse bu
@@ -130,6 +134,15 @@ export function TaskActions({
             <Pencil className="size-4" /> Düzenle
           </button>
         )}
+        {showRevision && (
+          <button
+            type="button"
+            onClick={() => setRevising(true)}
+            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md bg-amber-500 px-2.5 text-xs font-semibold text-white transition hover:bg-amber-600"
+          >
+            <RotateCcw className="size-4" /> Revize Ver
+          </button>
+        )}
         {showComplete && (
           <button
             type="button"
@@ -167,6 +180,21 @@ export function TaskActions({
           onClose={() => setEditing(false)}
           options={formOptions}
           task={task}
+        />
+      )}
+      {showRevision && (
+        <RevisionDialog
+          open={revising}
+          onClose={() => setRevising(false)}
+          taskTitle={task.title}
+          onSubmit={(note) =>
+            // Görev hemen "Yapılıyor"a döner; kayıt ve not arka planda
+            run((id) => requestRevision(id, note), {
+              type: "status",
+              id: task.id,
+              status: "in_progress",
+            })
+          }
         />
       )}
       <ConfirmDialog

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import type { PostgrestError } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/server";
 import { getUserId } from "@/lib/auth";
-import { EVERYONE, isTaskPriority, isUuid } from "@/lib/tasks";
+import { EVERYONE, isTaskPriority, isUuid, MAX_REVISION_NOTE } from "@/lib/tasks";
 import type { TaskPriority } from "@/types/database";
 import { ATTACHMENTS_BUCKET } from "@/lib/attachments";
 
@@ -177,6 +177,44 @@ export async function submitForReview(taskId: string): Promise<ActionResult> {
   if (!data.length) return { error: "Görevi sadece sorumlusu kontrole gönderebilir." };
 
   revalidateAll();
+  return { error: null };
+}
+
+// Revize Ver: kontroldeki görev, atayan kişi tarafından "Yapılıyor"a geri döner.
+// İsteğe bağlı not, görevin yorumlarına "Revize" başlığıyla eklenir; görevi alan kişi
+// düzeltip yeniden kontrole gönderir.
+export async function requestRevision(taskId: string, note = ""): Promise<ActionResult> {
+  const userId = await getUserId();
+  if (!isUuid(taskId)) return { error: "Geçersiz görev." };
+  const text = String(note ?? "").trim();
+  if (text.length > MAX_REVISION_NOTE) {
+    return { error: "Revize notu çok uzun (en fazla 5.000 karakter)." };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("tasks")
+    .update({ status: "in_progress" })
+    .eq("id", taskId)
+    .eq("status", "review")
+    .eq("created_by", userId)
+    .select("revision_count");
+
+  if (error) return { error: dbError(error, "Revize verilemedi.") };
+  if (!data.length) {
+    return { error: "Revize sadece kontroldeki göreve, atayan kişi tarafından verilebilir." };
+  }
+
+  const round = data[0].revision_count;
+  const { error: commentError } = await supabase.from("task_comments").insert({
+    task_id: taskId,
+    user_id: userId,
+    content: `**Revize #${round}**${text ? `\n\n${text}` : ""}`,
+  });
+
+  revalidateAll();
+  // Durum geri döndü; not kaydedilemediyse bunu ayrıca bildir
+  if (commentError) return { error: "Revize verildi ama not kaydedilemedi." };
   return { error: null };
 }
 

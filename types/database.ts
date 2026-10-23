@@ -31,6 +31,7 @@ export type Task = {
   created_by: string | null;
   due_date: string | null; // "YYYY-MM-DD"
   accepted_at: string | null;
+  revision_count: number; // Kontrol → Yapılıyor (Revize Ver) sayısı
   created_at: string;
   updated_at: string;
 };
