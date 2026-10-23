@@ -122,16 +122,16 @@ export function MessageComposer({
   return (
     <>
       {sending && (
-        <div className="flex gap-3 px-5 pb-3 opacity-70 sm:px-6" aria-live="polite">
+        <div className="flex gap-3 px-4 pb-3 opacity-70 sm:px-4" aria-live="polite">
           <Avatar name={authorName} size="sm" />
           <div className="min-w-0 flex-1">
-            <p className="flex items-center gap-1.5 text-[13px] text-slate-400">
+            <p className="flex items-center gap-1.5 text-xs text-slate-400">
               <span className="font-bold text-slate-700">{authorName}</span>
               <LoaderCircle className="size-3.5 animate-spin" />
               {sending.progress ?? "Gönderiliyor…"}
             </p>
             {sending.text && (
-              <p className="mt-0.5 text-[15px] whitespace-pre-wrap text-slate-700 [overflow-wrap:anywhere]">
+              <p className="mt-0.5 text-sm whitespace-pre-wrap text-slate-700 [overflow-wrap:anywhere]">
                 {sending.text}
               </p>
             )}
@@ -210,7 +210,7 @@ export function MessageComposer({
             }}
             rows={1}
             placeholder="Ekibe bir mesaj yazın… (link, kod ve doküman paylaşabilirsiniz)"
-            className="max-h-48 min-h-11 flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-2.5 text-[15.5px] text-slate-900 outline-none [field-sizing:content] placeholder:text-slate-400 focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10"
+            className="max-h-48 min-h-9 flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-2.5 text-[13.5px] text-slate-900 outline-none [field-sizing:content] placeholder:text-slate-400 focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10"
           />
           <button
             type="submit"

@@ -117,12 +117,12 @@ async function General({ searchParams }: Pick<PageProps<"/genel">, "searchParams
     .map((l) => l.url);
 
   return (
-    <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+    <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
       <section
         className={`${card} flex h-[calc(100dvh-19rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] min-h-[420px] lg:h-[calc(100dvh-14rem)] lg:min-h-[460px] flex-col overflow-hidden`}
         aria-label="Ekip sohbeti"
       >
-        <div className="border-b border-slate-100 px-5 py-3 sm:px-6">
+        <div className="border-b border-slate-100 px-4 py-2 sm:px-4">
           <DayFilter
             selected={selectedDay}
             days={days}
@@ -133,7 +133,7 @@ async function General({ searchParams }: Pick<PageProps<"/genel">, "searchParams
         </div>
         <ChatScroller messageCount={messages.length}>
           {setupMissing ? (
-            <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <p className="rounded-xl bg-amber-50 px-4 py-2 text-sm text-amber-800">
               Genel sayfası için veritabanı kurulumu eksik: supabase/genel.sql dosyasını
               Supabase SQL Editor&apos;de çalıştırın.
             </p>
@@ -144,17 +144,17 @@ async function General({ searchParams }: Pick<PageProps<"/genel">, "searchParams
                   ? "Bugün henüz mesaj yok"
                   : `${formatDate(`${selectedDay}T12:00:00Z`)} tarihinde mesaj yok`}
               </p>
-              <p className="mt-1 text-[15px]">
+              <p className="mt-1 text-sm">
                 Oklarla mesaj olan günlere geçebilir ya da &quot;Tümü&quot;ne dönebilirsiniz.
               </p>
             </div>
           ) : messages.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center text-center text-slate-500">
-              <div className="flex size-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-600">
+              <div className="flex size-14 items-center justify-center rounded-xl bg-teal-50 text-teal-600">
                 <MessagesSquare className="size-6" />
               </div>
               <p className="mt-4 font-bold text-slate-900">Sohbet henüz sessiz</p>
-              <p className="mt-1 text-[15px]">İlk mesajı yazın; link ve doküman da paylaşabilirsiniz.</p>
+              <p className="mt-1 text-sm">İlk mesajı yazın; link ve doküman da paylaşabilirsiniz.</p>
             </div>
           ) : (
             <ol className="space-y-1">
@@ -184,14 +184,14 @@ async function General({ searchParams }: Pick<PageProps<"/genel">, "searchParams
                       <div className="min-w-0 flex-1">
                         {!grouped && (
                           <p className="flex items-baseline gap-2">
-                            <span className="text-[14.5px] font-bold text-slate-900">{name}</span>
+                            <span className="text-[13px] font-bold text-slate-900">{name}</span>
                             <time dateTime={m.created_at} title={formatDateTime(m.created_at)} className="text-xs text-slate-400">
                               {formatTime(m.created_at)}
                             </time>
                           </p>
                         )}
                         {m.content && (
-                          <div className="text-[15px] [&_.markdown]:text-[15px]">
+                          <div className="text-sm [&_.markdown]:text-sm">
                             <Markdown>{m.content}</Markdown>
                           </div>
                         )}
@@ -223,7 +223,7 @@ async function General({ searchParams }: Pick<PageProps<"/genel">, "searchParams
         />
       </section>
 
-      <aside className="space-y-6 xl:sticky xl:top-8">
+      <aside className="space-y-4 xl:sticky xl:top-8">
         <TaskLinks
           links={links}
           scope={GENERAL_LINK_SCOPE}
@@ -278,9 +278,9 @@ function MessageFiles({ files }: { files: GeneralDocument[] }) {
 
 function GeneralSkeleton() {
   return (
-    <div className="grid grid-cols-1 animate-pulse gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+    <div className="grid grid-cols-1 animate-pulse gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
       <div className={`${card} h-[calc(100dvh-19rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] min-h-[420px] lg:h-[calc(100dvh-14rem)] lg:min-h-[460px]`} />
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className={`${card} h-40`} />
         <div className={`${card} h-40`} />
       </div>

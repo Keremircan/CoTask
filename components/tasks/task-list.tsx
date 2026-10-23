@@ -40,7 +40,7 @@ export function TaskList({
 }) {
   if (!tasks.length) {
     return (
-      <p className="rounded-xl border border-dashed border-slate-200 px-5 py-8 text-center text-[15px] text-slate-500">
+      <p className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
         {empty}
       </p>
     );
@@ -58,13 +58,13 @@ export function TaskList({
         return (
           <li
             key={task.id}
-            className="flex flex-col gap-3 py-4.5 first:pt-0 last:pb-0 md:flex-row md:items-start md:justify-between md:gap-6"
+            className="flex flex-col gap-3 py-4.5 first:pt-0 last:pb-0 md:flex-row md:items-start md:justify-between md:gap-4"
           >
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2.5">
                 <Link
                   href={`/gorevler/${task.id}`}
-                  className="text-[17px] font-bold text-slate-900 transition hover:text-teal-700 hover:underline"
+                  className="text-sm font-bold text-slate-900 transition hover:text-teal-700 hover:underline"
                 >
                   {task.title}
                 </Link>
@@ -72,7 +72,7 @@ export function TaskList({
                 <PriorityBadge priority={task.priority} />
               </div>
               {task.description && (
-                <p className="mt-1 line-clamp-1 text-[15px] text-slate-500">
+                <p className="mt-1 line-clamp-1 text-sm text-slate-500">
                   {previewText(task.description)}
                 </p>
               )}

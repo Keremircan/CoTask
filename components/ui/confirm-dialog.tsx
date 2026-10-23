@@ -31,7 +31,7 @@ export function ConfirmDialog({
 
   return (
     <Modal open={open} onClose={close} title={title} size="sm">
-      <p className="text-[15px] text-slate-600">{message}</p>
+      <p className="text-sm text-slate-600">{message}</p>
       {error && (
         <p
           role="alert"
@@ -40,7 +40,7 @@ export function ConfirmDialog({
           <CircleAlert className="mt-0.5 size-4 shrink-0" /> {error}
         </p>
       )}
-      <div className="mt-6 flex justify-end gap-2.5">
+      <div className="mt-4 flex justify-end gap-2.5">
         <button type="button" onClick={close} className={ghostButton}>
           Vazgeç
         </button>

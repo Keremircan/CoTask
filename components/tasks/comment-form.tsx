@@ -47,7 +47,7 @@ export function CommentForm({
   return (
     <>
       {sending && (
-        <div className="mb-6 flex gap-3.5 opacity-70" aria-live="polite">
+        <div className="mb-4 flex gap-3.5 opacity-70" aria-live="polite">
           <Avatar name={authorName} />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2.5">
@@ -56,7 +56,7 @@ export function CommentForm({
                 <LoaderCircle className="size-3.5 animate-spin" /> Gönderiliyor…
               </span>
             </div>
-            <div className="mt-1.5 rounded-2xl rounded-tl-md bg-slate-50 px-4 py-3 text-[16px] leading-relaxed whitespace-pre-wrap text-slate-700 [overflow-wrap:anywhere]">
+            <div className="mt-1.5 rounded-xl rounded-tl-md bg-slate-50 px-4 py-2 text-sm leading-relaxed whitespace-pre-wrap text-slate-700 [overflow-wrap:anywhere]">
               {sending}
             </div>
           </div>
@@ -86,13 +86,13 @@ export function CommentForm({
           }}
           rows={4}
           placeholder={"Yorumunuzu yazın… Kod paylaşmak için:\n```ts\nconst x = 1;\n```"}
-          className={`${field} mt-0 resize-y py-3.5 font-[inherit]`}
+          className={`${field} mt-0 resize-y py-2.5 font-[inherit]`}
         />
 
         {error && (
           <p
             role="alert"
-            className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-[15px] text-rose-700"
+            className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700"
           >
             <CircleAlert className="size-4 shrink-0" /> {error}
           </p>

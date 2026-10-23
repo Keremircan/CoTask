@@ -73,7 +73,7 @@ export function MemberRolesEditor({
         description={`${memberName} için rolleri seçin. Bir kişi birden fazla rol alabilir.`}
       >
         {roles.length === 0 ? (
-          <p className="rounded-xl bg-slate-50 px-4 py-5 text-center text-[15px] text-slate-500">
+          <p className="rounded-xl bg-slate-50 px-4 py-5 text-center text-sm text-slate-500">
             Önce Roller bölümünden bir rol oluşturun.
           </p>
         ) : (
@@ -88,7 +88,7 @@ export function MemberRolesEditor({
                     aria-checked={checked}
                     disabled={pendingIds.has(role.id)}
                     onClick={() => toggle(role.id)}
-                    className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left text-[15px] font-medium transition disabled:opacity-60 ${
+                    className={`flex w-full items-center gap-3 rounded-xl border px-4 py-2 text-left text-sm font-medium transition disabled:opacity-60 ${
                       checked
                         ? "border-teal-300 bg-teal-50 text-teal-900"
                         : "border-slate-200 text-slate-700 hover:bg-slate-50"
@@ -109,7 +109,7 @@ export function MemberRolesEditor({
           </ul>
         )}
         {error && <p className="mt-3 text-sm text-rose-600">{error}</p>}
-        <div className="mt-6 flex justify-end">
+        <div className="mt-4 flex justify-end">
           <button type="button" onClick={() => setOpen(false)} className={ghostButton}>
             Kapat
           </button>

@@ -46,11 +46,11 @@ async function Members() {
     (links ?? []).filter((l) => l.role_id === roleId).length;
 
   return (
-    <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-      <section className={`${card} p-6 sm:p-7`}>
-        <div className="mb-5 flex items-baseline justify-between">
-          <h2 className="text-[20px] font-bold text-slate-900">Üyeler</h2>
-          <span className="text-[15px] text-slate-500">{profiles?.length ?? 0} kişi</span>
+    <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      <section className={`${card} p-4 sm:p-5`}>
+        <div className="mb-4 flex items-baseline justify-between">
+          <h2 className="text-base font-bold text-slate-900">Üyeler</h2>
+          <span className="text-sm text-slate-500">{profiles?.length ?? 0} kişi</span>
         </div>
         <ul className="divide-y divide-slate-100">
           {(profiles ?? []).map((p) => {
@@ -94,18 +94,18 @@ async function Members() {
         </ul>
       </section>
 
-      <section className={`${card} p-6 sm:p-7`}>
-        <div className="mb-5 flex items-baseline justify-between">
-          <h2 className="text-[20px] font-bold text-slate-900">Roller</h2>
-          <span className="text-[15px] text-slate-500">{allRoles.length} rol</span>
+      <section className={`${card} p-4 sm:p-5`}>
+        <div className="mb-4 flex items-baseline justify-between">
+          <h2 className="text-base font-bold text-slate-900">Roller</h2>
+          <span className="text-sm text-slate-500">{allRoles.length} rol</span>
         </div>
 
         {user.isAdmin ? (
-          <div className="mb-5">
+          <div className="mb-4">
             <CreateRoleForm />
           </div>
         ) : (
-          <p className="mb-5 flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
+          <p className="mb-4 flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-2 text-sm text-slate-500">
             <Lock className="size-4 shrink-0" /> Rolleri sadece Admin oluşturup atayabilir.
           </p>
         )}
@@ -114,7 +114,7 @@ async function Members() {
           {allRoles.map((r) => (
             <li
               key={r.id}
-              className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3"
+              className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-2"
             >
               <div className="flex min-w-0 items-center gap-2.5">
                 <RoleBadge name={r.name} system={r.is_system} />
@@ -149,7 +149,7 @@ function RoleBadge({ name, system }: { name: string; system: boolean }) {
 
 function MembersSkeleton() {
   return (
-    <div className="grid grid-cols-1 animate-pulse gap-6 xl:grid-cols-[1.5fr_1fr]">
+    <div className="grid grid-cols-1 animate-pulse gap-4 xl:grid-cols-[1.5fr_1fr]">
       <div className={`${card} h-72`} />
       <div className={`${card} h-72`} />
     </div>

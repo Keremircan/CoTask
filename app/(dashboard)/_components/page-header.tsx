@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+// Mobilde başlık ve alt yazılar üst çubukta gösterilir; burada sadece buton (varsa) kalır
 export function PageHeader({
   title,
   label = "PANO",
@@ -12,17 +13,17 @@ export function PageHeader({
   action?: ReactNode; // sağ üstteki buton
 }) {
   return (
-    <header className="mb-7 flex flex-wrap items-end justify-between gap-4">
-      <div className="min-w-0">
-        <p className="text-[13px] font-medium tracking-[0.12em] text-slate-500">
-          {label}
-        </p>
-        <h1 className="mt-1 text-[32px] leading-tight font-bold tracking-tight text-slate-900">
+    <header
+      className={`mb-4 flex-wrap items-end justify-end gap-4 lg:mb-5 lg:flex lg:justify-between ${
+        action ? "flex" : "hidden"
+      }`}
+    >
+      <div className="hidden min-w-0 lg:block">
+        <p className="text-xs font-medium tracking-[0.12em] text-slate-500">{label}</p>
+        <h1 className="mt-1 text-2xl leading-tight font-bold tracking-tight text-slate-900">
           {title}
         </h1>
-        {description && (
-          <p className="mt-1 text-[15px] text-slate-500">{description}</p>
-        )}
+        {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
       </div>
       {action}
     </header>

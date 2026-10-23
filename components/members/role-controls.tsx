@@ -36,12 +36,12 @@ export function CreateRoleForm() {
           disabled={pending}
           onChange={() => error && setError(null)}
           placeholder="Yeni rol, örn. Frontend"
-          className={`${field} mt-0 h-11 flex-1`}
+          className={`${field} mt-0 h-9 flex-1`}
         />
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl bg-teal-600 px-4 text-[15px] font-bold text-white transition hover:bg-teal-700 disabled:opacity-60"
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-teal-600 px-4 text-sm font-bold text-white transition hover:bg-teal-700 disabled:opacity-60"
         >
           <Plus className="size-4" strokeWidth={2.6} />
           Oluştur

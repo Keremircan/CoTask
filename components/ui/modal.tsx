@@ -51,17 +51,17 @@ export function Modal({
         if (e.target === e.currentTarget) onClose();
       }}
       // Tarayıcının <dialog> için verdiği kendi kaydırması kapatılır; sadece iç kutu kayar
-      className={`m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] overflow-hidden ${width} rounded-2xl bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/50 backdrop:backdrop-blur-[2px]`}
+      className={`m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] overflow-hidden ${width} rounded-xl bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/50 backdrop:backdrop-blur-[2px]`}
     >
       {open && (
-        <div className="max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain p-6 sm:p-7">
-          <div className="mb-5 flex items-start justify-between gap-4">
+        <div className="max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain p-4 sm:p-5">
+          <div className="mb-4 flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-[22px] leading-tight font-bold tracking-tight">
+              <h2 className="text-lg leading-tight font-bold tracking-tight">
                 {title}
               </h2>
               {description && (
-                <p className="mt-1 text-[15px] text-slate-500">{description}</p>
+                <p className="mt-1 text-sm text-slate-500">{description}</p>
               )}
             </div>
             <button

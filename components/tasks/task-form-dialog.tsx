@@ -137,7 +137,7 @@ export function TaskFormDialog({
           : "Görevi oluşturun, projesini ve sorumlusunu seçin."
       }
     >
-      <form action={submit} className="space-y-5">
+      <form action={submit} className="space-y-4">
         <div>
           <label htmlFor="task-title" className={fieldLabel}>
             Görev adı
@@ -151,7 +151,7 @@ export function TaskFormDialog({
             defaultValue={task?.title}
             disabled={pending}
             placeholder="Örn. Giriş ekranı hatasını düzelt"
-            className={`${field} h-13`}
+            className={`${field} h-10`}
           />
         </div>
 
@@ -166,14 +166,14 @@ export function TaskFormDialog({
             defaultValue={task?.description ?? ""}
             disabled={pending}
             placeholder={"Detayları yazın. Kod için:\n```ts\nconst ornek = true;\n```"}
-            className={`${field} resize-y py-3`}
+            className={`${field} resize-y py-2`}
           />
           <p className="mt-1.5 text-sm text-slate-400">
             Markdown desteklenir; linkler görev detayında ayrıca listelenir.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
             <label htmlFor="task-project" className={fieldLabel}>
               Bağlı olduğu proje
@@ -231,9 +231,9 @@ export function TaskFormDialog({
 
         <div>
           <span className={fieldLabel}>Görseller ve dokümanlar</span>
-          <label className="mt-2 flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/60 px-4 py-3.5 transition hover:border-teal-300 hover:bg-teal-50/50">
+          <label className="mt-2 flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/60 px-4 py-2.5 transition hover:border-teal-300 hover:bg-teal-50/50">
             <Paperclip className="size-5 text-teal-600" />
-            <span className="text-[15px] text-slate-600">
+            <span className="text-sm text-slate-600">
               Dosya ekle <span className="text-slate-400">· görsel veya PDF, en fazla 10 MB</span>
             </span>
             <input
@@ -286,7 +286,7 @@ export function TaskFormDialog({
         {error && (
           <p
             role="alert"
-            className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-[15px] text-rose-700"
+            className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700"
           >
             <CircleAlert className="mt-0.5 size-4.5 shrink-0" /> {error}
           </p>
@@ -300,7 +300,7 @@ export function TaskFormDialog({
           <button
             type="submit"
             disabled={pending || options.projects.length === 0}
-            className={`${primaryButton} h-11 px-5 text-[15px]`}
+            className={`${primaryButton} h-9 px-4 text-sm`}
           >
             <SendHorizontal className="size-4.5" strokeWidth={2.4} />
             {pending ? "Kaydediliyor…" : editing ? "Kaydet" : "İş ata"}

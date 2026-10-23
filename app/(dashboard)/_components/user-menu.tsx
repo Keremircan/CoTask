@@ -23,7 +23,7 @@ export function UserMenu({
       label="Hesap menüsü"
       tone="dark"
       trigger={initials(name)}
-      triggerClassName="flex size-10 items-center justify-center rounded-full bg-white/[0.08] text-sm font-semibold text-neutral-100 transition hover:bg-white/[0.14]"
+      triggerClassName="flex size-8 items-center justify-center rounded-full bg-white/[0.08] text-xs font-semibold text-neutral-100 transition hover:bg-white/[0.14]"
       header={
         <div className="mb-1 border-b border-white/10 px-3 pt-2 pb-2.5">
           <p className="truncate text-sm font-semibold text-white">{name}</p>

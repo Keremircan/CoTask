@@ -158,21 +158,21 @@ async function TaskDetail({
     <>
       <Link
         href={backHref}
-        className="mb-4 inline-flex items-center gap-1.5 text-[15px] font-medium text-slate-500 transition hover:text-teal-700"
+        className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-teal-700"
       >
         <ArrowLeft className="size-4" />
         {task.project ? `${task.project.name} panosuna dön` : "Ana sayfaya dön"}
       </Link>
 
-      <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="min-w-0 space-y-6">
+      <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="min-w-0 space-y-4">
           {/* Üst bilgi kartı */}
-          <section className={`${card} p-6 sm:p-7`}>
+          <section className={`${card} p-4 sm:p-5`}>
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge status={task.status} />
               <PriorityBadge priority={task.priority} />
             </div>
-            <h1 className="mt-3 text-[28px] leading-tight font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere]">
+            <h1 className="mt-3 text-2xl leading-tight font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere]">
               {task.title}
             </h1>
 
@@ -183,7 +183,7 @@ async function TaskDetail({
               </p>
             )}
 
-            <dl className="mt-6 grid grid-cols-1 gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2 2xl:grid-cols-4">
+            <dl className="mt-4 grid grid-cols-1 gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2 2xl:grid-cols-4">
               <Meta label="Atayan">
                 <Person name={creatorName} />
               </Meta>
@@ -228,8 +228,8 @@ async function TaskDetail({
           </section>
 
           {/* Açıklama */}
-          <section className={`${card} p-6 sm:p-7`}>
-            <h2 className="mb-3 text-[20px] font-bold text-slate-900">Açıklama</h2>
+          <section className={`${card} p-4 sm:p-5`}>
+            <h2 className="mb-3 text-base font-bold text-slate-900">Açıklama</h2>
             {task.description ? (
               <Markdown>{task.description}</Markdown>
             ) : (
@@ -252,7 +252,7 @@ async function TaskDetail({
           </div>
         </div>
 
-        <aside className="space-y-6 xl:sticky xl:top-8">
+        <aside className="space-y-4 xl:sticky xl:top-8">
           <TaskAttachments taskId={task.id} attachments={attachments} />
           <TaskLinks links={links} scope={task.id} removableUrls={removableUrls} />
         </aside>
@@ -276,20 +276,20 @@ function Meta({ label, children }: { label: string; children: React.ReactNode })
       <dt className="text-xs font-medium tracking-wide text-slate-400 uppercase">
         {label}
       </dt>
-      <dd className="mt-1.5 text-[15px] font-medium text-slate-800">{children}</dd>
+      <dd className="mt-1.5 text-sm font-medium text-slate-800">{children}</dd>
     </div>
   );
 }
 
 function DetailSkeleton() {
   return (
-    <div className="grid grid-cols-1 animate-pulse items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-      <div className="space-y-6">
+    <div className="grid grid-cols-1 animate-pulse items-start gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="space-y-4">
         <div className={`${card} h-60`} />
         <div className={`${card} h-40`} />
         <div className={`${card} h-64`} />
       </div>
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className={`${card} h-56`} />
         <div className={`${card} h-40`} />
       </div>

@@ -38,14 +38,14 @@ export function TaskComments({
   today: string;
 }) {
   return (
-    <section className={`${card} p-6 sm:p-7`}>
+    <section className={`${card} p-4 sm:p-5`}>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-[20px] font-bold text-slate-900">
+        <h2 className="text-base font-bold text-slate-900">
           Yorumlar ve tartışma
         </h2>
       </div>
 
-      <div className="mb-5 border-b border-slate-100 pb-4">
+      <div className="mb-4 border-b border-slate-100 pb-4">
         <DayFilter
           selected={selectedDay}
           days={days}
@@ -57,7 +57,7 @@ export function TaskComments({
       </div>
 
       {comments.length === 0 ? (
-        <div className="mb-6 flex items-center gap-3 rounded-xl border border-dashed border-slate-200 px-5 py-6 text-slate-500">
+        <div className="mb-4 flex items-center gap-3 rounded-xl border border-dashed border-slate-200 px-4 py-6 text-slate-500">
           <MessagesSquare className="size-5 shrink-0 text-slate-400" />
           {selectedDay === null
             ? "Henüz yorum yok. İlk yorumu sen yaz."
@@ -68,7 +68,7 @@ export function TaskComments({
               : `${formatDate(`${selectedDay}T12:00:00Z`)} tarihinde yorum yok.`}
         </div>
       ) : (
-        <ol className="mb-6 space-y-5">
+        <ol className="mb-4 space-y-4">
           {comments.map((comment) => {
             const name = comment.author?.full_name || "Eski üye";
             const canDelete = isAdmin || comment.user_id === currentUserId;
@@ -98,7 +98,7 @@ export function TaskComments({
                       </span>
                     )}
                   </div>
-                  <div className="mt-1.5 rounded-2xl rounded-tl-md bg-slate-50 px-4 py-3">
+                  <div className="mt-1.5 rounded-xl rounded-tl-md bg-slate-50 px-4 py-2">
                     <Markdown>{comment.content}</Markdown>
                   </div>
                 </div>

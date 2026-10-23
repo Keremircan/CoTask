@@ -45,13 +45,15 @@ async function Board({ params }: Pick<PageProps<"/projeler/[id]">, "params">) {
 
   return (
     <>
-      <header className="mb-7 flex flex-wrap items-end justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-[13px] font-medium tracking-[0.12em] text-slate-500">PROJE</p>
-          <h1 className="mt-1 truncate text-[32px] leading-tight font-bold tracking-tight text-slate-900">
+      {/* Mobilde proje adı üst çubukta; burada görev sayısı ve buton kalır */}
+      <header className="mb-4 flex flex-wrap items-center justify-between gap-4 lg:mb-5 lg:items-end">
+        <p className="text-xs font-medium text-slate-500 lg:hidden">{all.length} görev</p>
+        <div className="hidden min-w-0 lg:block">
+          <p className="text-xs font-medium tracking-[0.12em] text-slate-500">PROJE</p>
+          <h1 className="mt-1 truncate text-2xl leading-tight font-bold tracking-tight text-slate-900">
             {project.name}
           </h1>
-          <p className="mt-1 text-[15px] text-slate-500">
+          <p className="mt-1 text-sm text-slate-500">
             {all.length} görev · tüm ekip bu panoyu görür
           </p>
         </div>
@@ -62,19 +64,19 @@ async function Board({ params }: Pick<PageProps<"/projeler/[id]">, "params">) {
         />
       </header>
 
-      {/* Mobilde sütunlar yana kaydırılır */}
-      <div className="-mx-4 overflow-x-auto px-4 pb-2 sm:-mx-9 sm:px-9">
-        <div className="grid min-w-[1040px] grid-cols-4 gap-4 xl:min-w-0">
+      {/* Mobilde sütunlar yana kaydırılır (çubuk gizli); sütunlar sayfanın altına kadar uzanır */}
+      <div className="no-scrollbar -mx-4 flex flex-1 flex-col overflow-x-auto px-4 sm:-mx-6 sm:px-6">
+        <div className="grid min-h-[60vh] min-w-[920px] flex-1 grid-cols-4 gap-3 xl:min-w-0">
           {BOARD_COLUMNS.map((column) => {
             const items = all.filter((t) => t.status === column.status);
             return (
               <section
                 key={column.status}
                 aria-label={column.title}
-                className="flex min-h-[420px] flex-col rounded-2xl bg-slate-200/50 p-3"
+                className="flex flex-col rounded-xl bg-slate-200/50 p-2.5"
               >
-                <div className="mb-3 flex items-center justify-between px-1.5 pt-1">
-                  <h2 className="flex items-center gap-2 text-[15px] font-bold text-slate-800">
+                <div className="mb-2.5 flex items-center justify-between px-1.5 pt-1">
+                  <h2 className="flex items-center gap-2 text-sm font-bold text-slate-800">
                     <span className={`size-2 rounded-full ${STATUS_DOTS[column.status]}`} />
                     {column.title}
                   </h2>
@@ -83,15 +85,15 @@ async function Board({ params }: Pick<PageProps<"/projeler/[id]">, "params">) {
                   </span>
                 </div>
 
-                <ul className="flex flex-col gap-2.5">
+                <ul className="flex flex-col gap-2">
                   {items.map((task) => (
                     <li key={task.id}>
                       <Link
                         href={`/gorevler/${task.id}`}
-                        className="block rounded-xl border border-transparent bg-white p-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition hover:border-teal-200 hover:shadow-md"
+                        className="block rounded-lg border border-slate-200/60 bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,0.06)] transition hover:border-teal-200 hover:shadow-md"
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <p className="text-[15px] leading-snug font-bold text-slate-900 [overflow-wrap:anywhere]">
+                          <p className="text-[13.5px] leading-snug font-semibold text-slate-900 [overflow-wrap:anywhere]">
                             {task.title}
                           </p>
                           <PriorityBadge priority={task.priority} size="xs" />
@@ -104,7 +106,7 @@ async function Board({ params }: Pick<PageProps<"/projeler/[id]">, "params">) {
                               : (task.assignee?.full_name ?? "Eski üye")
                           }
                         />
-                        <p className="mt-1.5 flex items-center gap-1.5 text-[13px] text-slate-500">
+                        <p className="mt-1.5 flex items-center gap-1.5 text-[11.5px] text-slate-500">
                           <CalendarClock className="size-3.5" />
                           {formatDateTime(task.created_at)}
                         </p>
@@ -112,7 +114,7 @@ async function Board({ params }: Pick<PageProps<"/projeler/[id]">, "params">) {
                     </li>
                   ))}
                   {items.length === 0 && (
-                    <li className="rounded-xl border border-dashed border-slate-300/70 px-3 py-6 text-center text-sm text-slate-400">
+                    <li className="rounded-lg border border-dashed border-slate-300/70 px-3 py-5 text-center text-sm text-slate-400">
                       Görev yok
                     </li>
                   )}
@@ -132,7 +134,7 @@ function FromTo({ from, to }: { from: string; to: string }) {
   return (
     <p
       title={`${from} → ${to}`}
-      className="mt-1.5 flex min-w-0 items-center gap-1.5 text-[13px] font-medium text-slate-600"
+      className="mt-1.5 flex min-w-0 items-center gap-1.5 text-[12px] font-medium text-slate-600"
     >
       <span className="truncate">{first(from)}</span>
       <ArrowRight className="size-3.5 shrink-0 text-slate-400" />
@@ -144,10 +146,10 @@ function FromTo({ from, to }: { from: string; to: string }) {
 function BoardSkeleton() {
   return (
     <div className="animate-pulse">
-      <div className="mb-7 h-20 w-72 rounded-xl bg-slate-200/70" />
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <div className="mb-5 hidden h-20 w-72 rounded-xl bg-slate-200/70 lg:block" />
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="h-[420px] rounded-2xl bg-slate-200/50" />
+          <div key={i} className="h-[60vh] rounded-xl bg-slate-200/50" />
         ))}
       </div>
     </div>

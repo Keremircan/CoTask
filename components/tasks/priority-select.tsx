@@ -97,7 +97,7 @@ export function PrioritySelect({
         aria-expanded={open}
         aria-controls={listId}
         onClick={() => (open ? setOpen(false) : openList())}
-        className="flex h-14 w-full items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50/60 px-4 text-left text-[16px] text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10 disabled:opacity-60"
+        className="flex h-10 w-full items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50/60 px-4 text-left text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10 disabled:opacity-60"
       >
         <PriorityIcon priority={value} />
         <span className="flex-1">{PRIORITY_LABELS[value]}</span>
@@ -121,7 +121,7 @@ export function PrioritySelect({
               onMouseEnter={() => setActive(i)}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => choose(p)}
-              className={`flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-[15.5px] text-slate-800 ${
+              className={`flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-[13.5px] text-slate-800 ${
                 i === active ? "bg-slate-100" : ""
               }`}
             >

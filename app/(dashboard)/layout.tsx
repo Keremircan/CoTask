@@ -5,21 +5,28 @@ import { SidebarShell } from "./_components/sidebar-shell";
 import { SidebarNav, SidebarNavList } from "./_components/sidebar-nav";
 import { UserMenu } from "./_components/user-menu";
 import { MobileTabBar, MobileTabBarList } from "./_components/mobile-tab-bar";
+import { MobilePageTitle, MobileTitleText } from "./_components/mobile-page-title";
 import { Logo } from "@/components/ui/logo";
 import { SidebarFooter, SidebarFooterSkeleton } from "./_components/sidebar-footer";
 
 export default function DashboardLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className="flex min-h-screen flex-1 bg-[#f2f5f8]">
-      <SidebarShell>
-        <div className="flex items-center justify-between gap-3 px-6 pt-5 pb-6">
-          <span className="flex min-w-0 items-center gap-2.5">
-            <Logo size={30} className="rounded-[8px]" />
-            <span className="truncate text-[19px] font-semibold tracking-tight text-white">
+    <div className="flex min-h-screen flex-1 bg-[#f4f6f8]">
+      <SidebarShell
+        mobileTitle={
+          <Suspense fallback={<MobileTitleText label="PANO" title="CoTask" />}>
+            <MobileTitle />
+          </Suspense>
+        }
+      >
+        <div className="flex items-center justify-between gap-3 px-4 pt-4 pb-4">
+          <span className="flex min-w-0 items-center gap-2">
+            <Logo size={26} className="rounded-[7px]" />
+            <span className="truncate text-[15px] font-semibold tracking-tight text-white">
               CoTask
             </span>
           </span>
-          <Suspense fallback={<div className="size-10 rounded-full bg-white/[0.08]" />}>
+          <Suspense fallback={<div className="size-8 rounded-full bg-white/[0.08]" />}>
             <SidebarUser />
           </Suspense>
         </div>
@@ -32,9 +39,10 @@ export default function DashboardLayout({ children }: LayoutProps<"/">) {
       </SidebarShell>
 
       {/* Mobilde üstte sabit çubuk, altta sekme çubuğu var: içerik ikisinin arasında kalır */}
-      <main className="flex min-w-0 flex-1 flex-col px-4 pt-[calc(5rem+env(safe-area-inset-top))] pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-9 lg:pt-8 lg:pb-7">
-        <div className="flex-1">{children}</div>
-        <footer className="mt-12 hidden text-sm text-slate-400 lg:block">
+      <main className="flex min-w-0 flex-1 flex-col px-4 pt-[calc(4.25rem+env(safe-area-inset-top))] pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:px-6 lg:pt-6 lg:pb-5">
+        {/* flex: sayfalar (ör. proje panosu) kalan yüksekliği doldurabilir */}
+        <div className="flex flex-1 flex-col">{children}</div>
+        <footer className="mt-8 hidden text-xs text-slate-400 lg:block">
           © 2026 CoTask · Ekip içi iş takip
         </footer>
       </main>
@@ -62,13 +70,22 @@ async function SidebarData() {
   );
 }
 
+async function MobileTitle() {
+  const projects = await getProjects();
+  return (
+    <Suspense fallback={<MobileTitleText label="PANO" title="CoTask" />}>
+      <MobilePageTitle projects={projects.map((p) => ({ id: p.id, name: p.name }))} />
+    </Suspense>
+  );
+}
+
 function SidebarSkeleton() {
   return (
-    <div className="flex-1 animate-pulse space-y-2 px-3">
-      {Array.from({ length: 4 }, (_, i) => (
-        <div key={i} className="h-11 rounded-lg bg-white/[0.04]" />
+    <div className="flex-1 animate-pulse space-y-1.5 px-3">
+      {Array.from({ length: 5 }, (_, i) => (
+        <div key={i} className="h-9 rounded-lg bg-white/[0.04]" />
       ))}
-      <div className="mt-7 h-6 w-24 rounded bg-white/[0.04]" />
+      <div className="mt-5 h-5 w-20 rounded bg-white/[0.04]" />
     </div>
   );
 }

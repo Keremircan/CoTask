@@ -8,7 +8,7 @@ export function SelectField({ className = "", ...props }: ComponentProps<"select
     <div className="relative">
       <select
         {...props}
-        className={`${field} h-14 appearance-none pr-12 ${className}`}
+        className={`${field} h-10 appearance-none pr-12 ${className}`}
       />
       <ChevronDown
         aria-hidden

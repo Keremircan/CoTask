@@ -56,7 +56,7 @@ export function CodeBlock({
       </div>
       <pre
         ref={preRef}
-        className="overflow-x-auto px-4 py-3.5 font-mono text-[13.5px] leading-relaxed text-slate-100"
+        className="overflow-x-auto px-4 py-2.5 font-mono text-[12.5px] leading-relaxed text-slate-100"
       >
         {children}
       </pre>

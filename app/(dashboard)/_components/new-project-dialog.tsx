@@ -67,7 +67,7 @@ export function NewProjectDialog({
           defaultValue={project?.name}
           disabled={pending}
           placeholder="Örn. E-Evrak Sistemi"
-          className={`${field} h-13`}
+          className={`${field} h-10`}
         />
         {error && (
           <p
@@ -77,11 +77,11 @@ export function NewProjectDialog({
             <CircleAlert className="size-4 shrink-0" /> {error}
           </p>
         )}
-        <div className="mt-6 flex justify-end gap-2.5">
+        <div className="mt-4 flex justify-end gap-2.5">
           <button type="button" onClick={close} className={ghostButton}>
             Vazgeç
           </button>
-          <button type="submit" disabled={pending} className={`${primaryButton} h-11 px-5 text-[15px]`}>
+          <button type="submit" disabled={pending} className={`${primaryButton} h-9 px-4 text-sm`}>
             {!renaming && <Plus className="size-4.5" strokeWidth={2.4} />}
             {pending ? "Kaydediliyor…" : renaming ? "Kaydet" : "Oluştur"}
           </button>

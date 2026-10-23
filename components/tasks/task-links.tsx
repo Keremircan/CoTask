@@ -25,9 +25,9 @@ export function TaskLinks({
   removableUrls?: string[];
 }) {
   return (
-    <section className={`${card} p-6`}>
+    <section className={`${card} p-4`}>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-[18px] font-bold text-slate-900">
+        <h2 className="text-[15px] font-bold text-slate-900">
           {title}
         </h2>
         <span className="text-sm text-slate-500">{links.length}</span>
@@ -57,7 +57,7 @@ export function TaskLinks({
                     <Icon className="size-4" />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[14.5px] font-bold text-slate-900">
+                    <span className="block truncate text-[13px] font-bold text-slate-900">
                       {link.label}
                     </span>
                     <span className="block truncate text-xs text-slate-500">

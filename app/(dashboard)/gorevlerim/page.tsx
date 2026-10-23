@@ -42,13 +42,13 @@ async function MyTasks() {
       />
 
       {error && (
-        <p className="mb-6 rounded-xl bg-rose-50 px-4 py-3 text-rose-700">
+        <p className="mb-4 rounded-xl bg-rose-50 px-4 py-2 text-rose-700">
           Görevler yüklenemedi. Sayfayı yenileyip tekrar deneyin.
         </p>
       )}
 
-      <div className="space-y-6">
-        <section className={`${card} p-6 sm:p-7`}>
+      <div className="space-y-4">
+        <section className={`${card} p-4 sm:p-5`}>
           <SectionTitle title="Onay bekleyenler" count={waiting.length} />
           <TaskList
             tasks={waiting}
@@ -58,7 +58,7 @@ async function MyTasks() {
           />
         </section>
 
-        <section className={`${card} p-6 sm:p-7`}>
+        <section className={`${card} p-4 sm:p-5`}>
           <SectionTitle title="Üzerimdeki işler" count={working.length} />
           <TaskList
             tasks={working}
@@ -68,7 +68,7 @@ async function MyTasks() {
           />
         </section>
 
-        <section className={`${card} p-6 sm:p-7`}>
+        <section className={`${card} p-4 sm:p-5`}>
           <SectionTitle title="Tamamlananlar" count={done.length} />
           <TaskList
             tasks={done}

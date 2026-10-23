@@ -81,7 +81,7 @@ export function AttachmentUpload({ taskId }: { taskId: string }) {
         ) : (
           <CloudUpload className="size-7 text-teal-600" />
         )}
-        <span className="text-[15px] font-bold text-slate-800">
+        <span className="text-sm font-bold text-slate-800">
           {pending ? progress : "Dosya seç veya buraya sürükle"}
         </span>
         <span className="text-sm text-slate-500">

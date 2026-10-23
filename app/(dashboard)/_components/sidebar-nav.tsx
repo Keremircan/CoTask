@@ -26,7 +26,7 @@ const MAIN_LINKS = [
 ];
 
 const itemBase =
-  "group flex h-11 items-center gap-3 rounded-lg px-3 text-[15.5px] transition";
+  "group flex h-9 items-center gap-3 rounded-lg px-3 text-[13.5px] transition";
 const itemIdle = "text-neutral-300 hover:bg-white/[0.06] hover:text-white";
 const itemActive = "bg-white/[0.08] font-semibold text-white";
 
@@ -55,7 +55,8 @@ export function SidebarNavList({
     (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
   return (
-    <>
+    // Menü ve proje listesi tek kaydırma alanı; kaydırma çubuğu görünmez
+    <div className="no-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain pb-3">
       <nav className="flex flex-col gap-0.5 px-3">
         {MAIN_LINKS.map(({ href, label, icon: Icon }) => {
           const active = isActive(href);
@@ -67,7 +68,7 @@ export function SidebarNavList({
               className={`${itemBase} ${active ? itemActive : itemIdle}`}
             >
               <Icon
-                className={`size-[19px] shrink-0 ${active ? "text-white" : "text-neutral-400 group-hover:text-neutral-200"}`}
+                className={`size-[17px] shrink-0 ${active ? "text-white" : "text-neutral-400 group-hover:text-neutral-200"}`}
                 strokeWidth={1.8}
               />
               {label}
@@ -76,13 +77,13 @@ export function SidebarNavList({
         })}
       </nav>
 
-      <div className="mt-7 flex min-h-0 flex-1 flex-col px-3">
+      <div className="mt-5 flex flex-col px-3">
         <div className="flex items-center justify-between pr-1 pl-1">
           <button
             type="button"
             onClick={() => setProjectsOpen((v) => !v)}
             aria-expanded={projectsOpen}
-            className="flex items-center gap-1.5 rounded-md py-1 text-[15px] font-medium text-neutral-200 hover:text-white"
+            className="flex items-center gap-1.5 rounded-md py-1 text-[11px] font-semibold tracking-[0.08em] text-neutral-500 uppercase hover:text-white"
           >
             Projeler
             <ChevronDown
@@ -95,12 +96,12 @@ export function SidebarNavList({
             aria-label="Yeni proje oluştur"
             className="rounded-md p-1 text-neutral-400 transition hover:bg-white/[0.08] hover:text-white"
           >
-            <Plus className="size-5" strokeWidth={1.8} />
+            <Plus className="size-4" strokeWidth={2} />
           </button>
         </div>
 
         {projectsOpen && (
-          <ul className="mt-2 -mr-1 flex min-h-0 flex-col gap-0.5 overflow-y-auto pr-1">
+          <ul className="mt-1.5 flex flex-col gap-0.5">
             {projects.length === 0 && (
               <li className="px-3 py-2 text-sm text-neutral-500">
                 Henüz proje yok. + ile oluşturun.
@@ -115,10 +116,10 @@ export function SidebarNavList({
                   <Link
                     href={href}
                     aria-current={active ? "page" : undefined}
-                    className={`${itemBase} pr-11 ${active ? itemActive : itemIdle}`}
+                    className={`${itemBase} pr-10 ${active ? itemActive : itemIdle}`}
                   >
                     <PanelsTopLeft
-                      className={`size-[19px] shrink-0 ${active ? "text-white" : "text-neutral-400"}`}
+                      className={`size-[17px] shrink-0 ${active ? "text-white" : "text-neutral-400"}`}
                       strokeWidth={1.8}
                     />
                     <span className="truncate">{project.name}</span>
@@ -139,6 +140,6 @@ export function SidebarNavList({
       </div>
 
       <NewProjectDialog open={creating} onClose={() => setCreating(false)} />
-    </>
+    </div>
   );
 }

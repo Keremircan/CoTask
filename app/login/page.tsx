@@ -8,18 +8,30 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <main className="flex flex-1 items-center justify-center bg-zinc-50 px-4 pt-[calc(3rem+env(safe-area-inset-top))] pb-[calc(3rem+env(safe-area-inset-bottom))] dark:bg-black">
-      <div className="w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="mb-6 text-center">
-          <Logo size={56} className="mx-auto mb-3" />
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-            CoTask
-          </h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Devam etmek için hesabınızla giriş yapın.
-          </p>
+    <main className="relative flex flex-1 items-center justify-center overflow-hidden bg-[#f4f6f8] px-4 pt-[calc(2.5rem+env(safe-area-inset-top))] pb-[calc(2.5rem+env(safe-area-inset-bottom))]">
+      {/* Hafif nokta deseni: düz zemini kırar, dikkat dağıtmaz */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgba(15,23,42,0.07)_1px,transparent_1px)] [background-size:18px_18px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]"
+      />
+
+      <div className="relative w-full max-w-[360px]">
+        <div className="mb-6 flex items-center justify-center gap-2">
+          <Logo size={28} className="rounded-[7px]" />
+          <span className="text-base font-semibold tracking-tight text-slate-900">CoTask</span>
         </div>
-        <LoginForm />
+
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.12)]">
+          <h1 className="text-lg font-semibold tracking-tight text-slate-900">Giriş yapın</h1>
+          <p className="mt-1 mb-5 text-[13px] text-slate-500">
+            Devam etmek için ekip hesabınızı kullanın.
+          </p>
+          <LoginForm />
+        </div>
+
+        <p className="mt-5 text-center text-xs text-slate-400">
+          Hesaplar yönetici tarafından oluşturulur.
+        </p>
       </div>
     </main>
   );

@@ -46,9 +46,9 @@ export function downloadUrl(id: string) {
 
 export function GeneralDocuments({ documents }: { documents: GeneralDocument[] }) {
   return (
-    <section className={`${card} p-6`}>
+    <section className={`${card} p-4`}>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-[18px] font-bold text-slate-900">DOKÜMANLAR</h2>
+        <h2 className="text-[15px] font-bold text-slate-900">DOKÜMANLAR</h2>
         <span className="text-sm text-slate-500">{documents.length}</span>
       </div>
 
@@ -69,7 +69,7 @@ export function GeneralDocuments({ documents }: { documents: GeneralDocument[] }
                   <Icon className="size-4.5" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[14.5px] font-bold text-slate-900" title={doc.file_name}>
+                  <p className="truncate text-[13px] font-bold text-slate-900" title={doc.file_name}>
                     {doc.file_name}
                   </p>
                   <p className="truncate text-xs text-slate-500">

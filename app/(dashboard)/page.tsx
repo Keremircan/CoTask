@@ -26,13 +26,13 @@ export default function HomePage() {
         <Stats />
       </Suspense>
 
-      <Suspense fallback={<div className={`${card} mt-6 h-64 animate-pulse`} />}>
+      <Suspense fallback={<div className={`${card} mt-4 h-64 animate-pulse`} />}>
         <Inbox />
       </Suspense>
 
-      <section className={`${card} mt-6 p-7`}>
-        <h2 className="text-[20px] font-bold text-slate-900">Nasıl çalışır?</h2>
-        <ol className="mt-3 grid grid-cols-1 gap-3 text-[15.5px] text-slate-600 md:grid-cols-2 xl:grid-cols-4">
+      <section className={`${card} mt-4 p-5`}>
+        <h2 className="text-base font-bold text-slate-900">Nasıl çalışır?</h2>
+        <ol className="mt-3 grid grid-cols-1 gap-3 text-[13.5px] text-slate-600 md:grid-cols-2 xl:grid-cols-4">
           <Step n={1} title="İş ata">
             Atadığım Görevler’den projesini ve kişisini seçerek işi oluşturun. Görev
             “Onay Bekliyor” olarak başlar.
@@ -63,7 +63,7 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
         </span>
         {title}
       </p>
-      <p className="mt-1.5 text-[14.5px] leading-relaxed">{children}</p>
+      <p className="mt-1.5 text-[13px] leading-relaxed">{children}</p>
     </li>
   );
 }
@@ -88,7 +88,7 @@ async function Stats() {
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
       {items.map((item) => (
         <StatCard key={item.label} {...item} />
       ))}
@@ -120,7 +120,7 @@ async function Inbox() {
   ]);
 
   return (
-    <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
+    <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
       <InboxCard
         title="Kabulünü bekleyen görevler"
         href="/gorevlerim"
@@ -162,21 +162,21 @@ function InboxCard({
   tasks: InboxTask[];
 }) {
   return (
-    <section className={`${card} p-6 sm:p-7`}>
+    <section className={`${card} p-4 sm:p-5`}>
       {/* Dar ekranda başlık ve link sığmazsa link alt satıra iner (üst üste binmez) */}
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <h2 className="text-[18px] leading-snug font-bold text-slate-900 sm:text-[20px]">
+        <h2 className="text-[15px] leading-snug font-bold text-slate-900 sm:text-base">
           {title}
         </h2>
         <Link
           href={href}
-          className="inline-flex shrink-0 items-center gap-1 text-sm font-bold whitespace-nowrap text-teal-700 hover:underline"
+          className="inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold whitespace-nowrap text-teal-700 hover:underline"
         >
-          {linkLabel} <ArrowRight className="size-4" />
+          {linkLabel} <ArrowRight className="size-3.5" />
         </Link>
       </div>
       {tasks.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-slate-200 px-4 py-6 text-center text-[15px] text-slate-500">
+        <p className="rounded-xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500">
           {empty}
         </p>
       ) : (
@@ -185,11 +185,11 @@ function InboxCard({
             <li key={t.id}>
               <Link
                 href={`/gorevler/${t.id}`}
-                className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-xl border border-slate-100 px-4 py-3 transition hover:border-teal-200 hover:bg-teal-50/40"
+                className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-lg border border-slate-100 px-3 py-2 transition hover:border-teal-200 hover:bg-teal-50/40"
               >
                 <span className="min-w-0 flex-1 basis-44">
-                  <span className="block truncate font-bold text-slate-900">{t.title}</span>
-                  <span className="block truncate text-sm text-slate-500">
+                  <span className="block truncate text-[13.5px] font-semibold text-slate-900">{t.title}</span>
+                  <span className="block truncate text-xs text-slate-500">
                     {t.project?.name ?? "Projesiz"} · {formatDateTime(t.created_at)}
                   </span>
                 </span>
@@ -210,13 +210,13 @@ type StatItem = { value: number; label: string; icon: LucideIcon; tone: string }
 
 function StatCard({ value, label, icon: Icon, tone }: StatItem) {
   return (
-    <div className={`${card} flex min-w-0 items-center gap-3 p-4 sm:gap-5 sm:p-6`}>
-      <div className={`flex size-11 shrink-0 items-center justify-center rounded-xl sm:size-14 sm:rounded-2xl ${tone}`}>
-        <Icon className="size-6" strokeWidth={2} />
+    <div className={`${card} flex min-w-0 items-center gap-3 p-3.5 sm:p-4`}>
+      <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg sm:size-10 ${tone}`}>
+        <Icon className="size-[18px]" strokeWidth={2} />
       </div>
       <div className="min-w-0">
-        <p className="text-[24px] leading-none font-bold text-slate-900 sm:text-[28px]">{value}</p>
-        <p className="mt-1.5 truncate text-[14px] text-slate-500 sm:text-[16px]">{label}</p>
+        <p className="text-lg leading-none font-bold text-slate-900 sm:text-xl">{value}</p>
+        <p className="mt-1.5 truncate text-[13px] text-slate-500 sm:text-sm">{label}</p>
       </div>
     </div>
   );
@@ -224,7 +224,7 @@ function StatCard({ value, label, icon: Icon, tone }: StatItem) {
 
 function StatsSkeleton() {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
       {Array.from({ length: 4 }, (_, i) => (
         <div key={i} className={`${card} h-[80px] animate-pulse sm:h-[104px]`} />
       ))}

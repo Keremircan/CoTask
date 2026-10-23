@@ -25,9 +25,9 @@ export function TaskAttachments({
   attachments: TaskAttachment[];
 }) {
   return (
-    <section className={`${card} p-6`}>
+    <section className={`${card} p-4`}>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-[18px] font-bold text-slate-900">
+        <h2 className="text-[15px] font-bold text-slate-900">
           Ekler ve Dosyalar
         </h2>
         <span className="text-sm text-slate-500">{attachments.length}</span>
@@ -85,7 +85,7 @@ function AttachmentRow({ attachment: a }: { attachment: TaskAttachment }) {
           <Icon className="size-5" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[15px] font-bold text-slate-900" title={a.file_name}>
+          <p className="truncate text-sm font-bold text-slate-900" title={a.file_name}>
             {a.file_name}
           </p>
           <p className="truncate text-xs text-slate-500">

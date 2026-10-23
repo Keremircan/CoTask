@@ -21,7 +21,7 @@ export function NewTaskButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`${primaryButton} h-11 px-5 text-[15px]`}
+        className={`${primaryButton} h-9 px-4 text-sm`}
       >
         <Plus className="size-4.5" strokeWidth={2.6} />
         {label}

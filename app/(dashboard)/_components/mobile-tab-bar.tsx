@@ -34,11 +34,11 @@ export function MobileTabBarList({ pathname }: { pathname: string | null }) {
               <Link
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium transition active:scale-95 ${
+                className={`flex h-14 flex-col items-center justify-center gap-0.5 text-[10.5px] font-medium transition active:scale-95 ${
                   active ? "text-teal-300" : "text-neutral-400"
                 }`}
               >
-                <Icon className="size-[22px]" strokeWidth={active ? 2.2 : 1.8} />
+                <Icon className="size-5" strokeWidth={active ? 2.2 : 1.8} />
                 {label}
               </Link>
             </li>
