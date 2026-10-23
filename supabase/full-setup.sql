@@ -971,3 +971,51 @@ create policy "Personal todos delete" on public.personal_todos
   for delete to authenticated using (user_id = (select auth.uid()));
 
 -- Not: Bu tablo bilerek Realtime yayınına eklenmez; değişiklikler kimseye yayınlanmaz.
+
+
+-- ---------------------------------------------------------------------
+-- UYGULAMA AYARLARI / ÜYE YÖNETİMİ (uye-yonetimi.sql)
+-- ---------------------------------------------------------------------
+create table if not exists public.app_settings (
+  key        text primary key,
+  value      jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.app_settings enable row level security;
+
+revoke all on public.app_settings from anon;
+grant select, update on public.app_settings to authenticated;
+
+drop policy if exists "App settings read"   on public.app_settings;
+drop policy if exists "App settings update" on public.app_settings;
+
+create policy "App settings read" on public.app_settings
+  for select to authenticated using (true);
+create policy "App settings update" on public.app_settings
+  for update to authenticated
+  using ((select public.is_admin()))
+  with check ((select public.is_admin()));
+-- Ekleme/silme politikası yok: ayar satırları sadece bu dosyayla oluşturulur.
+
+-- Güncellenme zamanı otomatik
+create or replace function public.touch_app_settings()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  new.updated_at := now();
+  return new;
+end;
+$$;
+
+drop trigger if exists app_settings_touch on public.app_settings;
+create trigger app_settings_touch
+  before update on public.app_settings
+  for each row execute function public.touch_app_settings();
+
+-- Varsayılan: sadece Admin üye ekleyip çıkarabilir (mevcut değer korunur)
+insert into public.app_settings (key, value)
+values ('member_management_permission', '{"allow_all_members": false}'::jsonb)
+on conflict (key) do nothing;

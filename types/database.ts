@@ -97,6 +97,13 @@ export type RemovedLink = {
   created_at: string;
 };
 
+// Uygulama ayarları (anahtar → JSON); herkes okur, sadece Admin değiştirir
+export type AppSetting = {
+  key: string;
+  value: { [key: string]: unknown };
+  updated_at: string;
+};
+
 // Kişisel yapılacaklar: sadece sahibi görür (RLS)
 export type PersonalTodo = {
   id: string;
@@ -199,6 +206,7 @@ export type Database = {
           Rel<"general_files_uploaded_by_fkey", "uploaded_by", "profiles">,
         ]
       >;
+      app_settings: Table<AppSetting, Pick<AppSetting, "key"> & Partial<Omit<AppSetting, "key">>>;
       personal_todos: Table<
         PersonalTodo,
         Pick<PersonalTodo, "title"> & Partial<Omit<PersonalTodo, "title">>
