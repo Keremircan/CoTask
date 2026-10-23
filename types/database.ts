@@ -96,6 +96,16 @@ export type RemovedLink = {
   created_at: string;
 };
 
+// Kişisel yapılacaklar: sadece sahibi görür (RLS)
+export type PersonalTodo = {
+  id: string;
+  user_id: string;
+  title: string;
+  category: string | null; // null = başlıksız
+  is_completed: boolean;
+  created_at: string;
+};
+
 // ---------------------------------------------------------------------
 // Supabase istemcisine verilen şema tipi (sorgular otomatik tiplenir)
 // ---------------------------------------------------------------------
@@ -187,6 +197,10 @@ export type Database = {
           Rel<"general_files_message_id_fkey", "message_id", "general_messages">,
           Rel<"general_files_uploaded_by_fkey", "uploaded_by", "profiles">,
         ]
+      >;
+      personal_todos: Table<
+        PersonalTodo,
+        Pick<PersonalTodo, "title"> & Partial<Omit<PersonalTodo, "title">>
       >;
       removed_links: Table<
         RemovedLink,

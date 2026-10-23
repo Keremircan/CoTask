@@ -8,6 +8,7 @@ import {
   CircleCheck,
   ClipboardList,
   House,
+  ListTodo,
   MessagesSquare,
   PanelsTopLeft,
   Plus,
@@ -24,6 +25,7 @@ const MAIN_LINKS = [
   { href: "/atadigim-gorevler", label: "Atadığım Görevler", icon: ClipboardList },
   { href: "/gorevlerim", label: "Görevlerim", icon: CircleCheck },
   { href: "/uyeler", label: "Üyeler", icon: Users },
+  { href: "/todo", label: "Yapılacaklarım", icon: ListTodo },
 ];
 
 const itemBase =
