@@ -25,7 +25,7 @@ import { TaskComments } from "@/components/tasks/task-comments";
 import { TaskAttachments, type TaskAttachment } from "@/components/tasks/task-attachments";
 import { TaskLinks } from "@/components/tasks/task-links";
 
-export const metadata: Metadata = { title: "Görev detayı · CoTask" };
+export const metadata: Metadata = { title: "Görev detayı · Em3Task" };
 
 // İmzalı dosya linklerinin geçerlilik süresi
 const SIGNED_URL_TTL_SECONDS = 60 * 60;

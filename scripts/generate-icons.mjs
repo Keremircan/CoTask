@@ -1,4 +1,4 @@
-// CoTask uygulama ikonlarını tek kaynaktan (public/icons/logo.svg) üretir.
+// Em3Task uygulama ikonlarını tek kaynaktan (public/icons/logo.svg) üretir.
 // Çalıştırma: node scripts/generate-icons.mjs
 //
 // Üretilenler:

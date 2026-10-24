@@ -5,9 +5,9 @@ import { usePushNotifications } from "@/components/pwa/use-push-notifications";
 
 const NOTES: Record<string, string> = {
   denied:
-    "Bildirim izni bu cihazda engellenmiş. iPhone'da Ayarlar → Bildirimler → CoTask; bilgisayarda adres çubuğundaki kilit simgesinden izni açıp sayfayı yenileyin.",
+    "Bildirim izni bu cihazda engellenmiş. iPhone'da Ayarlar → Bildirimler → Em3Task; bilgisayarda adres çubuğundaki kilit simgesinden izni açıp sayfayı yenileyin.",
   "ios-install":
-    "iPhone/iPad'de bildirim için CoTask'ı Safari'de Paylaş → Ana Ekrana Ekle ile kurun ve ana ekrandan açın.",
+    "iPhone/iPad'de bildirim için Em3Task'ı Safari'de Paylaş → Ana Ekrana Ekle ile kurun ve ana ekrandan açın.",
   unsupported: "Bu tarayıcı anlık bildirimleri desteklemiyor.",
 };
 

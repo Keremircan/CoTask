@@ -1,9 +1,9 @@
-// CoTask service worker
+// Em3Task service worker
 // Görevi sadece internet yokken açılan sayfalar için "çevrimdışı" ekranı göstermek.
 // Ekip verisi içeren sayfalar (görevler, sohbet, dosyalar) bilerek ÖNBELLEĞE ALINMAZ:
 // giriş gerektiren içerik cihazda saklanmasın ve her zaman güncel gelsin.
 
-const CACHE = "cotask-offline-v1";
+const CACHE = "em3task-offline-v2"; // ad değişti: yeni logo ikonları önbelleğe yeniden alınsın
 const OFFLINE_URL = "/offline.html";
 const PRECACHE = [OFFLINE_URL, "/icons/icon-192.png", "/icons/logo.svg"];
 
@@ -50,7 +50,7 @@ self.addEventListener("push", (event) => {
     data = { body: event.data ? event.data.text() : "" };
   }
 
-  const title = data.title || "CoTask";
+  const title = data.title || "Em3Task";
   event.waitUntil(
     self.registration.showNotification(title, {
       body: data.body || "",
@@ -64,7 +64,7 @@ self.addEventListener("push", (event) => {
   );
 });
 
-// Bildirime tıklanınca: açık bir CoTask sekmesi varsa onu o sayfaya götür, yoksa yeni pencere aç
+// Bildirime tıklanınca: açık bir Em3Task sekmesi varsa onu o sayfaya götür, yoksa yeni pencere aç
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const target = new URL(event.notification.data?.url || "/", self.location.origin).href;

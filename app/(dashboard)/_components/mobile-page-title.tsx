@@ -39,5 +39,5 @@ function titleFor(pathname: string, projects: Project[]) {
     return { label: "PROJE", title: projects.find((p) => p.id === project[1])?.name ?? "Proje" };
   }
   if (pathname.startsWith("/gorevler/")) return { label: "GÖREV", title: "Görev detayı" };
-  return { label: "PANO", title: "CoTask" };
+  return { label: "PANO", title: "Em3Task" };
 }

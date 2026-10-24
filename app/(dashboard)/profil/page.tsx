@@ -10,7 +10,7 @@ import { PasswordForm } from "@/components/profile/password-form";
 import { AccountForm } from "@/components/profile/account-form";
 import { PageHeader } from "../_components/page-header";
 
-export const metadata: Metadata = { title: "Profil · CoTask" };
+export const metadata: Metadata = { title: "Profil · Em3Task" };
 
 export default function ProfilePage() {
   return (

@@ -19,7 +19,7 @@ import {
   RemoveMemberButton,
 } from "@/components/members/member-management";
 
-export const metadata: Metadata = { title: "Üyeler · CoTask" };
+export const metadata: Metadata = { title: "Üyeler · Em3Task" };
 
 export default function MembersPage() {
   return (

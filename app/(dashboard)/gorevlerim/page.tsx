@@ -8,7 +8,7 @@ import { OptimisticTasksProvider } from "@/components/tasks/optimistic-tasks";
 import { PageHeader } from "../_components/page-header";
 import { ListSkeleton } from "../_components/list-parts";
 
-export const metadata: Metadata = { title: "Görevlerim · CoTask" };
+export const metadata: Metadata = { title: "Görevlerim · Em3Task" };
 
 export default function MyTasksPage() {
   return (

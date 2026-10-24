@@ -10,7 +10,7 @@ import { TaskBoard } from "@/components/tasks/task-board";
 import { ExternalLink, Link2 } from "lucide-react";
 import { displayUrl } from "@/lib/project-url";
 
-export const metadata: Metadata = { title: "Proje · CoTask" };
+export const metadata: Metadata = { title: "Proje · Em3Task" };
 
 export default function ProjectBoardPage({ params }: PageProps<"/projeler/[id]">) {
   return (

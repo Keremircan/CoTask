@@ -14,7 +14,7 @@ export default function DashboardLayout({ children }: LayoutProps<"/">) {
     <div className="flex min-h-screen flex-1 bg-[#f4f6f8]">
       <SidebarShell
         mobileTitle={
-          <Suspense fallback={<MobileTitleText label="PANO" title="CoTask" />}>
+          <Suspense fallback={<MobileTitleText label="PANO" title="Em3Task" />}>
             <MobileTitle />
           </Suspense>
         }
@@ -23,7 +23,7 @@ export default function DashboardLayout({ children }: LayoutProps<"/">) {
           <span className="flex min-w-0 items-center gap-2">
             <Logo size={26} className="rounded-[7px]" />
             <span className="truncate text-[15px] font-semibold tracking-tight text-white">
-              CoTask
+              Em3Task
             </span>
           </span>
           <Suspense fallback={<div className="size-8 rounded-full bg-white/[0.08]" />}>
@@ -43,7 +43,7 @@ export default function DashboardLayout({ children }: LayoutProps<"/">) {
         {/* flex: sayfalar (ör. proje panosu) kalan yüksekliği doldurabilir */}
         <div className="flex flex-1 flex-col">{children}</div>
         <footer className="mt-8 hidden text-xs text-slate-400 lg:block">
-          © 2026 CoTask · Ekip içi iş takip
+          © 2026 Em3Task · Ekip içi iş takip
         </footer>
       </main>
 
@@ -78,7 +78,7 @@ async function SidebarData() {
 async function MobileTitle() {
   const projects = await getProjects();
   return (
-    <Suspense fallback={<MobileTitleText label="PANO" title="CoTask" />}>
+    <Suspense fallback={<MobileTitleText label="PANO" title="Em3Task" />}>
       <MobilePageTitle projects={projects.map((p) => ({ id: p.id, name: p.name }))} />
     </Suspense>
   );

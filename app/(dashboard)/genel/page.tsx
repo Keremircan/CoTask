@@ -25,7 +25,7 @@ import {
 } from "@/components/general/general-documents";
 import { PageHeader } from "../_components/page-header";
 
-export const metadata: Metadata = { title: "Genel · CoTask" };
+export const metadata: Metadata = { title: "Genel · Em3Task" };
 
 // "Tümü" görünümünde gösterilen son mesaj sayısı
 const MESSAGE_LIMIT = 300;

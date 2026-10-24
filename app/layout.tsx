@@ -14,13 +14,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CoTask",
+  title: "Em3Task",
   description: "Ekip içi görev takip platformu",
-  applicationName: "CoTask",
+  applicationName: "Em3Task",
   // iPhone: ana ekrana eklenince tam ekran uygulama gibi açılır
   appleWebApp: {
     capable: true,
-    title: "CoTask",
+    title: "Em3Task",
     statusBarStyle: "black-translucent",
   },
   formatDetection: { telephone: false },

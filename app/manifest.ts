@@ -5,8 +5,8 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "CoTask — Ekip içi iş takip",
-    short_name: "CoTask",
+    name: "Em3Task — Ekip içi iş takip",
+    short_name: "Em3Task",
     description: "Ekip içi görev takip, sohbet ve dosya paylaşım uygulaması.",
     lang: "tr",
     dir: "ltr",

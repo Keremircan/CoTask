@@ -8,7 +8,7 @@ import { card } from "@/components/ui/styles";
 import { TodoBoard } from "@/components/todo/todo-board";
 import { PageHeader } from "../_components/page-header";
 
-export const metadata: Metadata = { title: "Yapılacaklar · CoTask" };
+export const metadata: Metadata = { title: "Yapılacaklar · Em3Task" };
 
 export default function TodoPage() {
   return (

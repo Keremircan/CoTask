@@ -35,7 +35,7 @@ export function LoginForm() {
             defaultValue={state.email}
             key={state.email}
             disabled={pending}
-            placeholder="ornek@cotask.app"
+            placeholder="ornek@em3task.app"
             className={inputClass}
           />
         </div>
