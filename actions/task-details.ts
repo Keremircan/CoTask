@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
-import { getUserId } from "@/lib/auth";
+import { getCurrentUser, getUserId } from "@/lib/auth";
+import { clip, notifyUsers } from "@/lib/push";
 import { isUuid } from "@/lib/tasks";
 import {
   ALLOWED_ATTACHMENT_TYPES,
@@ -44,6 +45,24 @@ export async function addComment(
           ? "Görev bulunamadı."
           : "Yorum kaydedilemedi. Lütfen tekrar deneyin.",
     };
+  }
+
+  // Görevi atayana ve sorumlusuna haber ver (yorumu yazan hariç)
+  const [{ data: task }, user] = await Promise.all([
+    supabase.from("tasks").select("title, created_by, assigned_to").eq("id", taskId).maybeSingle(),
+    getCurrentUser(),
+  ]);
+  if (task) {
+    notifyUsers(
+      [task.created_by, task.assigned_to],
+      {
+        title: `Yeni yorum: ${clip(task.title, 60)}`,
+        body: `${user.name}: ${clip(text)}`,
+        url: `/gorevler/${taskId}`,
+        tag: `task-${taskId}`,
+      },
+      userId,
+    );
   }
 
   revalidateTaskPages();

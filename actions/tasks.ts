@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import type { PostgrestError } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/server";
-import { getUserId } from "@/lib/auth";
+import { getCurrentUser, getUserId } from "@/lib/auth";
+import { clip, notifyUsers } from "@/lib/push";
 import { EVERYONE, isTaskPriority, isUuid, MAX_REVISION_NOTE } from "@/lib/tasks";
 import type { TaskPriority } from "@/types/database";
 import { ATTACHMENTS_BUCKET } from "@/lib/attachments";
@@ -13,6 +14,18 @@ export type CreateTaskResult = ActionResult & { taskId: string | null };
 
 const MAX_TITLE = 200;
 const MAX_DESCRIPTION = 50_000;
+
+const taskUrl = (id: string) => `/gorevler/${id}`;
+
+// "Herkes"e atanan görev için bildirim tüm ekibe gider
+async function assigneeIds(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  assignedTo: string | null,
+): Promise<string[]> {
+  if (assignedTo) return [assignedTo];
+  const { data } = await supabase.from("profiles").select("id");
+  return (data ?? []).map((p) => p.id);
+}
 
 function revalidateAll() {
   // Küçük uygulama: sidebar, panolar ve listeler birlikte yenilenir
@@ -75,6 +88,18 @@ export async function createTask(formData: FormData): Promise<CreateTaskResult> 
     return { error: dbError(error, "Görev kaydedilemedi."), taskId: null };
   }
 
+  const user = await getCurrentUser();
+  notifyUsers(
+    await assigneeIds(supabase, fields.assigned_to),
+    {
+      title: fields.assigned_to ? "Size yeni görev atandı" : "Ekibe yeni görev açıldı",
+      body: `${user.name}: ${clip(fields.title)}`,
+      url: taskUrl(data.id),
+      tag: `task-${data.id}`,
+    },
+    userId,
+  );
+
   revalidateAll();
   return { error: null, taskId: data.id };
 }
@@ -90,6 +115,11 @@ export async function updateTask(
   if (typeof fields === "string") return { error: fields };
 
   const supabase = await createClient();
+  const { data: before } = await supabase
+    .from("tasks")
+    .select("assigned_to")
+    .eq("id", taskId)
+    .maybeSingle();
   const { data, error } = await supabase
     .from("tasks")
     .update(fields)
@@ -99,6 +129,21 @@ export async function updateTask(
 
   if (error) return { error: dbError(error, "Görev güncellenemedi.") };
   if (!data.length) return { error: "Görevi sadece atayan kişi düzenleyebilir." };
+
+  // Sorumlu değiştiyse yeni sorumluya haber ver
+  if (before && before.assigned_to !== fields.assigned_to) {
+    const user = await getCurrentUser();
+    notifyUsers(
+      await assigneeIds(supabase, fields.assigned_to),
+      {
+        title: fields.assigned_to ? "Size görev atandı" : "Ekibe görev açıldı",
+        body: `${user.name}: ${clip(fields.title)}`,
+        url: taskUrl(taskId),
+        tag: `task-${taskId}`,
+      },
+      userId,
+    );
+  }
 
   revalidateAll();
   return { error: null };
@@ -171,10 +216,22 @@ export async function submitForReview(taskId: string): Promise<ActionResult> {
     .eq("id", taskId)
     .eq("status", "in_progress")
     .eq("assigned_to", userId)
-    .select("id");
+    .select("id, title, created_by");
 
   if (error) return { error: dbError(error, "Görev kontrole gönderilemedi.") };
   if (!data.length) return { error: "Görevi sadece sorumlusu kontrole gönderebilir." };
+
+  const user = await getCurrentUser();
+  notifyUsers(
+    [data[0].created_by],
+    {
+      title: "Görev kontrolünüzü bekliyor",
+      body: `${user.name}: ${clip(data[0].title)}`,
+      url: taskUrl(taskId),
+      tag: `task-${taskId}`,
+    },
+    userId,
+  );
 
   revalidateAll();
   return { error: null };
@@ -198,7 +255,7 @@ export async function requestRevision(taskId: string, note = ""): Promise<Action
     .eq("id", taskId)
     .eq("status", "review")
     .eq("created_by", userId)
-    .select("revision_count");
+    .select("revision_count, title, assigned_to");
 
   if (error) return { error: dbError(error, "Revize verilemedi.") };
   if (!data.length) {
@@ -211,6 +268,18 @@ export async function requestRevision(taskId: string, note = ""): Promise<Action
     user_id: userId,
     content: `**Revize #${round}**${text ? `\n\n${text}` : ""}`,
   });
+
+  const user = await getCurrentUser();
+  notifyUsers(
+    [data[0].assigned_to],
+    {
+      title: `Revize istendi: ${clip(data[0].title, 60)}`,
+      body: text ? `${user.name}: ${clip(text)}` : `${user.name} görevde düzeltme istedi.`,
+      url: taskUrl(taskId),
+      tag: `task-${taskId}`,
+    },
+    userId,
+  );
 
   revalidateAll();
   // Durum geri döndü; not kaydedilemediyse bunu ayrıca bildir

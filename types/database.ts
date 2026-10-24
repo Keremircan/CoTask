@@ -97,6 +97,16 @@ export type RemovedLink = {
   created_at: string;
 };
 
+// Web Push abonelikleri (cihaz başına bir satır); kullanıcı sadece kendininkini görür
+export type PushSubscriptionRow = {
+  id: string;
+  user_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  created_at: string;
+};
+
 // Uygulama ayarları (anahtar → JSON); herkes okur, sadece Admin değiştirir
 export type AppSetting = {
   key: string;
@@ -205,6 +215,11 @@ export type Database = {
           Rel<"general_files_message_id_fkey", "message_id", "general_messages">,
           Rel<"general_files_uploaded_by_fkey", "uploaded_by", "profiles">,
         ]
+      >;
+      push_subscriptions: Table<
+        PushSubscriptionRow,
+        Pick<PushSubscriptionRow, "endpoint" | "p256dh" | "auth"> &
+          Partial<Pick<PushSubscriptionRow, "id" | "user_id" | "created_at">>
       >;
       app_settings: Table<AppSetting, Pick<AppSetting, "key"> & Partial<Omit<AppSetting, "key">>>;
       personal_todos: Table<
