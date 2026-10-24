@@ -47,7 +47,8 @@ export function UserMenu({
             },
           };
 
-  const message = push.error ?? note;
+  const message = push.error ?? note ?? push.notice;
+  const isWarning = Boolean(push.error ?? note);
 
   return (
     <>
@@ -76,7 +77,7 @@ export function UserMenu({
             // Çıkışta bu cihazın bildirim aboneliği de kaldırılır: hesap kapalıyken bildirim gelmesin
             onSelect: () =>
               startTransition(async () => {
-                if (push.status === "on") await push.disable().catch(() => {});
+                if (push.status === "on") await push.disable();
                 await logout();
               }),
           },
@@ -87,7 +88,11 @@ export function UserMenu({
           role="alert"
           className="fixed inset-x-4 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-50 mx-auto flex max-w-md items-start gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-lg lg:right-6 lg:bottom-6 lg:left-auto lg:mx-0"
         >
-          <CircleAlert className="mt-0.5 size-4 shrink-0 text-amber-500" />
+          {isWarning ? (
+            <CircleAlert className="mt-0.5 size-4 shrink-0 text-amber-500" />
+          ) : (
+            <Bell className="mt-0.5 size-4 shrink-0 text-teal-600" />
+          )}
           <span className="flex-1">{message}</span>
           <button
             type="button"

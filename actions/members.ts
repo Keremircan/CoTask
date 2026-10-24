@@ -6,6 +6,7 @@ import { createAdminClient } from "@/utils/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 import { getMemberPermission, MEMBER_PERMISSION_KEY } from "@/lib/members";
 import { isUuid } from "@/lib/tasks";
+import { ATTACHMENTS_BUCKET } from "@/lib/attachments";
 
 export type MemberResult = { error: string | null };
 
@@ -70,8 +71,10 @@ export async function addMember(input: {
   return { error: null };
 }
 
-// Üyeyi çıkarır: hesap silinir, profil de onunla birlikte silinir.
-// Görevleri, yorumları ve dosyaları kalır; ekranda "Eski üye" olarak görünür.
+// Üyeyi çıkarır: hesap ve profil silinir.
+// Üyenin ATADIĞI görevler de (yorumları ve ekleriyle) silinir: görevi sadece atayan
+// silebildiği için, o gidince bu görevleri kimse silemezdi.
+// Üyeye atanmış görevler, yazdığı yorumlar ve Genel mesajları kalır; "Eski üye" görünür.
 // Admin rolündeki üye ve kişinin kendisi çıkarılamaz.
 export async function removeMember(profileId: string): Promise<MemberResult> {
   const [user, canManage] = await Promise.all([getCurrentUser(), checkCanManageMembers()]);
@@ -89,6 +92,25 @@ export async function removeMember(profileId: string): Promise<MemberResult> {
     .eq("roles.is_system", true);
   if (roleError) return { error: "Üye bilgisi okunamadı." };
   if (adminRoles.length) return { error: "Admin üyelikten çıkarılamaz." };
+
+  // Atadığı görevler ve eklerinin depodaki dosyaları
+  const { data: tasks, error: tasksError } = await admin
+    .from("tasks")
+    .select("id")
+    .eq("created_by", profileId);
+  if (tasksError) return { error: "Üyenin görevleri okunamadı." };
+  if (tasks.length) {
+    const taskIds = tasks.map((t) => t.id);
+    const { data: files } = await admin
+      .from("task_attachments")
+      .select("file_url")
+      .in("task_id", taskIds);
+    const { error: deleteError } = await admin.from("tasks").delete().in("id", taskIds);
+    if (deleteError) return { error: "Üyenin atadığı görevler silinemedi; üye çıkarılmadı." };
+    if (files?.length) {
+      await admin.storage.from(ATTACHMENTS_BUCKET).remove(files.map((f) => f.file_url));
+    }
+  }
 
   const { error } = await admin.auth.admin.deleteUser(profileId);
   if (error) {

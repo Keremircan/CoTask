@@ -18,6 +18,31 @@ export type PushStatus =
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
 
+// Kullanıcı bu cihazda bildirimleri kapattıysa hatırla. iOS'ta abonelik iptali bazen
+// sessizce başarısız olur; bu işaret olmadan uygulama açılışta aboneliği görüp
+// bildirimleri kendiliğinden yeniden açardı.
+const DISABLED_KEY = "cotask-push-disabled";
+const ENDPOINT_KEY = "cotask-push-endpoint";
+
+function store(key: string, value: string | null) {
+  try {
+    if (value === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, value);
+  } catch {}
+}
+function read(key: string) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+// Takılan bir adım arayüzü kilitlemesin
+function withTimeout<T>(promise: Promise<T>, ms = 6000): Promise<T | undefined> {
+  return Promise.race([promise, new Promise<undefined>((r) => setTimeout(() => r(undefined), ms))]);
+}
+
 function base64UrlToBytes(base64Url: string): Uint8Array<ArrayBuffer> {
   const base64 = (base64Url + "=".repeat((4 - (base64Url.length % 4)) % 4))
     .replace(/-/g, "+")
@@ -58,6 +83,14 @@ export function usePushNotifications() {
   const [status, setStatus] = useState<PushStatus>("loading");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  // Bilgi mesajı birkaç saniye sonra kendiliğinden kaybolur
+  useEffect(() => {
+    if (!notice) return;
+    const t = setTimeout(() => setNotice(null), 4000);
+    return () => clearTimeout(t);
+  }, [notice]);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,9 +100,15 @@ export function usePushNotifications() {
       const registration = await navigator.serviceWorker.getRegistration("/");
       const sub = await registration?.pushManager.getSubscription();
       if (cancelled) return;
-      if (sub && Notification.permission === "granted") {
+      if (sub && read(DISABLED_KEY)) {
+        // Kapatılmıştı ama tarayıcı aboneliği bırakmamış: tekrar iptal et, kaydetme
+        setStatus("off");
+        deletePushSubscription(sub.endpoint).catch(() => {});
+        sub.unsubscribe().catch(() => {});
+      } else if (sub && Notification.permission === "granted") {
         setStatus("on");
         // Aboneliği oturumdaki kullanıcıyla eşle (cihaz başka hesapla kullanılmış olabilir)
+        store(ENDPOINT_KEY, sub.endpoint);
         savePushSubscription(toInput(sub)).catch(() => {});
       } else {
         setStatus("off");
@@ -103,7 +142,10 @@ export function usePushNotifications() {
         setStatus("off");
         return;
       }
+      store(DISABLED_KEY, null);
+      store(ENDPOINT_KEY, sub.endpoint);
       setStatus("on");
+      setNotice("Bu cihazda bildirimler açıldı. Birkaç saniye içinde deneme bildirimi gelecek.");
       await sendTestPush();
     } catch {
       setError("Bildirimler açılamadı. Lütfen tekrar deneyin.");
@@ -112,23 +154,38 @@ export function usePushNotifications() {
     }
   }, []);
 
+  // Kapatma anında ekrana yansır; sunucu kaydı ve tarayıcı aboneliği arkada temizlenir.
+  // Sunucu kaydı silinince, tarayıcı aboneliği iptal edilemese bile bildirim gelmez.
   const disable = useCallback(async () => {
     setError(null);
-    setBusy(true);
+    setStatus("off");
+    store(DISABLED_KEY, "1");
+    setNotice("Bu cihazda bildirimler kapatıldı.");
     try {
-      const registration = await navigator.serviceWorker.getRegistration("/");
-      const sub = await registration?.pushManager.getSubscription();
-      if (sub) {
-        await deletePushSubscription(sub.endpoint);
-        await sub.unsubscribe();
-      }
-      setStatus("off");
+      const registration = await withTimeout(navigator.serviceWorker.getRegistration("/"));
+      const sub = await withTimeout(registration?.pushManager.getSubscription() ?? Promise.resolve(null));
+      const endpoint = sub?.endpoint ?? read(ENDPOINT_KEY);
+      const [result] = await Promise.all([
+        endpoint ? withTimeout(deletePushSubscription(endpoint)) : Promise.resolve(undefined),
+        sub ? withTimeout(sub.unsubscribe()).catch(() => undefined) : Promise.resolve(undefined),
+      ]);
+      if (result?.error) setError(result.error);
+      else store(ENDPOINT_KEY, null);
     } catch {
-      setError("Bildirimler kapatılamadı.");
-    } finally {
-      setBusy(false);
+      // Arayüz zaten kapalı gösteriyor; açılışta tekrar denenir
     }
   }, []);
 
-  return { status, busy, error, enable, disable, clearError: () => setError(null) };
+  return {
+    status,
+    busy,
+    error,
+    notice,
+    enable,
+    disable,
+    clearError: () => {
+      setError(null);
+      setNotice(null);
+    },
+  };
 }

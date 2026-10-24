@@ -258,7 +258,7 @@ export function RemoveMemberButton({ memberId, memberName }: { memberId: string;
         open={open}
         onClose={() => setOpen(false)}
         title="Üyeyi çıkar"
-        message={`${memberName} hesabı silinecek ve artık giriş yapamayacak. Görevleri ve yorumları kalır; adı "Eski üye" olarak görünür. Kişisel yapılacaklar listesi silinir.`}
+        message={`${memberName} hesabı silinecek ve artık giriş yapamayacak. Atadığı tüm görevler de yorumları ve dosyalarıyla birlikte silinir. Kendisine atanmış görevler ve yazdığı yorumlar kalır; adı "Eski üye" olarak görünür.`}
         confirmLabel="Üyeyi çıkar"
         onConfirm={async () => {
           run({ type: "remove", id: memberId }, () => removeMember(memberId));
