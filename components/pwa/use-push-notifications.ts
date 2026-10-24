@@ -155,25 +155,12 @@ export function usePushNotifications() {
   }, []);
 
   // Kapatma anında ekrana yansır; sunucu kaydı ve tarayıcı aboneliği arkada temizlenir.
-  // Sunucu kaydı silinince, tarayıcı aboneliği iptal edilemese bile bildirim gelmez.
   const disable = useCallback(async () => {
     setError(null);
     setStatus("off");
-    store(DISABLED_KEY, "1");
     setNotice("Bu cihazda bildirimler kapatıldı.");
-    try {
-      const registration = await withTimeout(navigator.serviceWorker.getRegistration("/"));
-      const sub = await withTimeout(registration?.pushManager.getSubscription() ?? Promise.resolve(null));
-      const endpoint = sub?.endpoint ?? read(ENDPOINT_KEY);
-      const [result] = await Promise.all([
-        endpoint ? withTimeout(deletePushSubscription(endpoint)) : Promise.resolve(undefined),
-        sub ? withTimeout(sub.unsubscribe()).catch(() => undefined) : Promise.resolve(undefined),
-      ]);
-      if (result?.error) setError(result.error);
-      else store(ENDPOINT_KEY, null);
-    } catch {
-      // Arayüz zaten kapalı gösteriyor; açılışta tekrar denenir
-    }
+    const result = await disablePushOnThisDevice();
+    if (result.error) setError(result.error);
   }, []);
 
   return {
@@ -188,4 +175,25 @@ export function usePushNotifications() {
       setNotice(null);
     },
   };
+}
+
+// Bu cihazda bildirimleri kapatır (Profil sayfası ve güvenli çıkış kullanır).
+// Sunucu kaydı silinince, tarayıcı aboneliği iptal edilemese bile bildirim gelmez.
+export async function disablePushOnThisDevice(): Promise<{ error: string | null }> {
+  if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return { error: null };
+  store(DISABLED_KEY, "1");
+  try {
+    const registration = await withTimeout(navigator.serviceWorker.getRegistration("/"));
+    const sub = await withTimeout(registration?.pushManager.getSubscription() ?? Promise.resolve(null));
+    const endpoint = sub?.endpoint ?? read(ENDPOINT_KEY);
+    const [result] = await Promise.all([
+      endpoint ? withTimeout(deletePushSubscription(endpoint)) : Promise.resolve(undefined),
+      sub ? withTimeout(sub.unsubscribe()).catch(() => undefined) : Promise.resolve(undefined),
+    ]);
+    if (result?.error) return { error: result.error };
+    store(ENDPOINT_KEY, null);
+  } catch {
+    // Açılışta tekrar denenir
+  }
+  return { error: null };
 }

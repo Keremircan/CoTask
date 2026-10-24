@@ -57,7 +57,7 @@ async function General({ searchParams }: Pick<PageProps<"/genel">, "searchParams
     searchParams,
     supabase
       .from("general_messages")
-      .select("id, user_id, content, created_at, author:profiles!general_messages_user_id_fkey(full_name)")
+      .select("id, user_id, content, created_at, author:profiles!general_messages_user_id_fkey(full_name, avatar_url)")
       .order("created_at", { ascending: false })
       .limit(HISTORY_LIMIT),
     supabase
@@ -179,7 +179,7 @@ async function General({ searchParams }: Pick<PageProps<"/genel">, "searchParams
                     )}
                     <div className={`group flex gap-3 rounded-xl px-2 py-1 hover:bg-slate-50/80 ${grouped ? "" : "mt-3"}`}>
                       <div className="w-8 shrink-0">
-                        {!grouped && <Avatar name={name} size="sm" />}
+                        {!grouped && <Avatar name={name} src={m.author?.avatar_url} size="sm" />}
                       </div>
                       <div className="min-w-0 flex-1">
                         {!grouped && (

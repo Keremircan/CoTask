@@ -8,6 +8,7 @@ export type CurrentUser = {
   email: string;
   name: string;
   isAdmin: boolean;
+  avatarUrl: string | null;
 };
 
 type Claims = { id: string; email: string };
@@ -37,7 +38,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser> => {
   const supabase = await createClient();
 
   const [{ data: profile }, { data: isAdmin }] = await Promise.all([
-    supabase.from("profiles").select("full_name").eq("id", id).maybeSingle(),
+    supabase.from("profiles").select("full_name, avatar_url").eq("id", id).maybeSingle(),
     supabase.rpc("is_admin"),
   ]);
 
@@ -46,5 +47,6 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser> => {
     email,
     name: profile?.full_name || email.split("@")[0] || "Ekip üyesi",
     isAdmin: isAdmin === true,
+    avatarUrl: profile?.avatar_url ?? null,
   };
 });

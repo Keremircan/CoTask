@@ -56,7 +56,12 @@ export default function DashboardLayout({ children }: LayoutProps<"/">) {
 
 async function SidebarUser() {
   const user = await getCurrentUser();
-  return <UserMenu name={user.name} email={user.email} isAdmin={user.isAdmin} />;
+  return <UserMenu
+      name={user.name}
+      email={user.email}
+      isAdmin={user.isAdmin}
+      avatarUrl={user.avatarUrl}
+    />;
 }
 
 async function SidebarData() {

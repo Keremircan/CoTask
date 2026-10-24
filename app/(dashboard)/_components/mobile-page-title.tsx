@@ -9,6 +9,7 @@ const TITLES: Record<string, string> = {
   "/gorevlerim": "Görevlerim",
   "/uyeler": "Üyeler",
   "/todo": "Yapılacaklar",
+  "/profil": "Profil",
 };
 
 type Project = { id: string; name: string };

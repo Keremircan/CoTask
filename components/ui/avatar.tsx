@@ -9,13 +9,38 @@ const TONES = [
   "bg-violet-100 text-violet-800",
 ];
 
+const SIZES = {
+  sm: "size-7 text-[11px]",
+  md: "size-10 text-sm",
+  lg: "size-24 text-2xl",
+};
+
+// Profil fotoğrafı varsa onu, yoksa renkli baş harfleri gösterir
 export function Avatar({
   name,
+  src,
   size = "md",
+  className = "",
 }: {
   name: string;
-  size?: "sm" | "md";
+  src?: string | null;
+  size?: keyof typeof SIZES;
+  className?: string;
 }) {
+  if (src) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- küçük, harici depo resmi
+      <img
+        src={src}
+        alt=""
+        aria-hidden
+        loading="lazy"
+        decoding="async"
+        className={`shrink-0 rounded-full bg-slate-100 object-cover ${SIZES[size]} ${className}`}
+      />
+    );
+  }
+
   let hash = 0;
   for (const ch of name) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
   const tone = TONES[hash % TONES.length];
@@ -23,9 +48,7 @@ export function Avatar({
   return (
     <span
       aria-hidden
-      className={`inline-flex shrink-0 items-center justify-center rounded-full font-bold ${tone} ${
-        size === "sm" ? "size-7 text-[11px]" : "size-10 text-sm"
-      }`}
+      className={`inline-flex shrink-0 items-center justify-center rounded-full font-bold ${tone} ${SIZES[size]} ${className}`}
     >
       {initials(name)}
     </span>

@@ -12,6 +12,7 @@ import {
   MessagesSquare,
   PanelsTopLeft,
   Plus,
+  UserRound,
   Users,
 } from "lucide-react";
 import type { ProjectSummary } from "@/lib/projects";
@@ -27,6 +28,7 @@ const MAIN_LINKS = [
   { href: "/gorevlerim", label: "Görevlerim", icon: CircleCheck },
   { href: "/uyeler", label: "Üyeler", icon: Users },
   { href: "/todo", label: "Yapılacaklar", icon: ListTodo },
+  { href: "/profil", label: "Profil", icon: UserRound },
 ];
 
 const itemBase =

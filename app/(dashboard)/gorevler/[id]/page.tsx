@@ -96,7 +96,7 @@ async function TaskDetail({
     supabase
       .from("task_comments")
       .select(
-        "id, user_id, content, created_at, author:profiles!task_comments_user_id_fkey(full_name)",
+        "id, user_id, content, created_at, author:profiles!task_comments_user_id_fkey(full_name, avatar_url)",
       )
       .eq("task_id", id)
       .order("created_at", { ascending: true }),

@@ -41,7 +41,7 @@ async function Members() {
       getCurrentUser(),
       getMemberPermission(),
       getMemberEmails(),
-      supabase.from("profiles").select("id, full_name").order("full_name"),
+      supabase.from("profiles").select("id, full_name, avatar_url").order("full_name"),
       supabase
         .from("roles")
         .select("id, name, is_system")
@@ -109,7 +109,7 @@ async function Members() {
                 node: (
                   <>
                     <div className="flex min-w-0 items-center gap-3.5">
-                      <Avatar name={name} />
+                      <Avatar name={name} src={p.avatar_url} />
                       <div className="min-w-0">
                         <p className="truncate font-bold text-slate-900">
                           {name}

@@ -13,7 +13,7 @@ export type TaskComment = {
   user_id: string | null;
   content: string;
   created_at: string;
-  author: { full_name: string | null } | null;
+  author: { full_name: string | null; avatar_url?: string | null } | null;
 };
 
 export function TaskComments({
@@ -78,7 +78,7 @@ export function TaskComments({
           const canDelete = isAdmin || comment.user_id === currentUserId;
           return (
             <li key={comment.id} className="group flex gap-3.5">
-              <Avatar name={name} />
+              <Avatar name={name} src={comment.author?.avatar_url} />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-x-2.5">
                   <span className="font-bold text-slate-900">{name}</span>
