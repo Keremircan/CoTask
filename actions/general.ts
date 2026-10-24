@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
-import { getUserId } from "@/lib/auth";
+import { getCurrentUser, getUserId } from "@/lib/auth";
+import { clip, notifyUsers } from "@/lib/push";
 import { isUuid } from "@/lib/tasks";
 import {
   GENERAL_BUCKET,
@@ -88,6 +89,24 @@ export async function sendGeneralMessage(
       return { error: "Dosyalar kaydedilemedi. Lütfen tekrar deneyin.", messageId: null };
     }
   }
+
+  // Yazan hariç tüm ekibe haber ver. Etiket sabit: art arda gelen mesajlar
+  // telefonda üst üste yığılmaz, son mesaj bir öncekinin yerine geçer.
+  const [user, { data: members }] = await Promise.all([
+    getCurrentUser(),
+    supabase.from("profiles").select("id"),
+  ]);
+  const fileNote = rows.length === 1 ? "📎 1 dosya" : `📎 ${rows.length} dosya`;
+  notifyUsers(
+    (members ?? []).map((m) => m.id),
+    {
+      title: `Genel · ${user.name}`,
+      body: text ? clip(text) : fileNote,
+      url: "/genel",
+      tag: "genel",
+    },
+    userId,
+  );
 
   revalidateGeneral();
   return { error: null, messageId: data.id };
